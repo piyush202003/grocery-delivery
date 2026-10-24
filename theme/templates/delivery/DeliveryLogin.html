@@ -1,0 +1,81 @@
+{% load static tailwind_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>
+    {% block title %}
+        Delivery Partner Login
+    {% endblock title %}
+    </title>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    {% tailwind_css %}
+    <link rel="icon" href="{% static 'icons/favicon.png' %}">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    {% block head %}{% endblock %}
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    
+    {% include 'components/Messages.html' %}
+    
+    <div class="min-h-screen flex">
+        <!-- Left Side -->
+        <div class="hidden lg:flex lg:w-1/2 bg-green-900 relative items-center justify-center">
+            <img src="{% static 'images/hero.jpg' %}" alt="" class="absolute inset-0 object-cover h-full bg-center opacity-10">
+            <div class="relative text-center px-12">
+                <h2 class="text-4xl font-semibold text-white mb-4">Delivery Partner Portal</h2>
+                <p class="text-white/60 font-serif text-xl max-w-sm mx-auto">Manage your deliveries and keep customers happy.</p>
+            </div>
+        </div>
+
+        <!-- Right Side -->
+        <div class="flex-1 flex items-center justify-center px-4 py-12 bg-amber-50">
+            <div class="w-full max-w-md">
+                <div class="text-center mb-8">
+                    <div class="flex items-center justify-center gap-2 mb-4">
+                        <i data-lucide="bike" class="size-7 text-green-900"></i>
+                        <span class="text-2xl font-semibold text-green-900">Instcart</span>
+                    </div>
+                    <h1 class="text-2xl font-semibold text-green-900 mb-2">Delivery Partner Login</h1>
+                    <p class="text-sm text-zinc-400">Sign in to manage your deliveries</p>
+                </div>
+
+                <form action="{% url 'DeliveryPartnerLogin' %}" method="POST" class="bg-white rounded-2xl p-8 space-y-5">
+                    {% csrf_token %}
+                    <div>
+                        <label for="" class="block text-sm font-medium text-green-900 mb-1.5">Email</label>
+                        <input type="email" required name="email" class="w-full px-4 py-2.5 rounded-xl border not-focus:border-zinc-400 text-sm transition-colors" placeholder="partner@example.com">
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-green-900 mb-1.5">Password</label>
+                        <input type="password" required name='password' class="w-full px-4 py-2.5 rounded-xl border not-focus:border-zinc-400 text-sm transition-colors" placeholder="••••••••" >
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-green-900 text-white font-semibold rounded-xl hover:bg-green-600 transition-colors disabled:opacity-60 cursor-pointer">
+                        Sign In
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        lucide.createIcons();
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,95 @@
+<section class="bg-white rounded-2xl border border-zinc-400 overflow-hidden ">
+
+    <!-- Header -->
+    <div class="px-5 py-4 border-b border-zinc-400 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <span class="text-sm font-mono text-zinc-400">#{{ order.id|slice:'-6:'|upper }}</span>
+            <span class="px-2.5 py-1 text-xs font-semibold rounded-full
+            {% if status %}
+                statusColors.order.status
+            {% else %}
+                bg-zinc-100 text-zinc-600
+            {% endif %}  
+            ">{{ order.status }}</span>
+        </div>
+        <span class="text-sm font-semibold text-zinc-900">$ {{ order.total }}</span>
+    </div>
+
+    <!-- Body -->
+    <div class="px-5 py-4 space-y-3">
+        <!-- Customer -->
+        <div class="flex items-center gap-2 text-sm">
+            <div class="size-8 rounded-full bg-amber-50 flex items-center justify-center">
+                <span class="text-xs font-semibold text-green-900">{{ order.user.first_name|first|upper }}</span>
+            </div>
+            <div>
+                <p class="font-medium text-zinc-900">{{ order.user|upper }}</p>
+                {% if order.user.phone %}
+                    <p class="text-xs text-zinc-500 flex items-center gap-1">
+                        <i data-lucide="phone" class="size-3"></i>
+                        {{ order.user.phone }}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Address -->
+        <div class="flex items-start gap-3 text-sm text-zinc-600 ">
+            <i data-lucide="map-pin" class="size-4 text-green-900 shrink-0 mt-0.5"></i>
+            <p>{{ order.shipping_address.address }}, {{ order.shipping_address.city }}, {{ order.shipping_address.state }} {{ order.shipping_address.zip }}</p>
+        </div>
+
+        <!-- Items Cout -->
+        <p class="text-xs text-zinc-500">{{ order.items.count }} item{% if order.items.count > 1 %}s{% endif %} • {{ order.payment_method|upper }}</p>
+    </div>
+
+    <!-- Actions -->
+    
+    {% if tab == 'active' %}
+        <div class="px-5 py-3 border-t border-zinc-400 flex flex-wrap gap-2">
+            
+            {% if order.status == 'Assigned' %}
+                <form method="POST" action="{% url 'UpdateDeliveryStatus' order.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="Packed">
+                    <button type="submit" class="px-4 py-2 text-sm font-medium bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-100 transition-colors flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="truck" class="w-3.5 h-3.5"></i>
+                        Mark as Packed
+                    </button>
+                </form>
+            {% elif order.status == 'Packed' %}
+                <form method="POST" action="{% url 'UpdateDeliveryStatus' order.id %}"> <!-- onClick={() => handleUpdateStatus(order._id, order.status === "Assigned" ? "Packed" : "Out for Delivery")} -->
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="Out for Delivery">
+                    <button type="submit" class="px-4 py-2 text-sm font-medium bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-100 transition-colors flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="truck" class="w-3.5 h-3.5"></i>
+                        Start Delivery
+                    </button>
+                </form>
+            {% elif order.status == 'Out for Delivery' %}
+                <a href="?otpModal={{ order.id }}"> <!-- onClick={() => setOtpModal(order._id)} -->
+                    <button class="px-4 py-2 text-sm font-medium bg-green-200 text-green-950 rounded-xl hover:bg-green-400 transition-colors flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                        Mark Delivered
+                    </button>
+                </a>
+            {% endif %}
+            {% if order.status != 'Delivered' and order.status != 'Cancelled' %}
+                <a href="?cancelModal={{ order.id }}">
+                    <button class="px-4 py-2 text-sm font-medium bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition-colors flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
+                        Cancel
+                    </button>
+                </a>
+            {% endif %}    
+        </div>
+    {% elif tab == 'completed' %}
+        <div class="px-5 py-3 border-t border-zinc-400">
+            <p class="text-xs text-zinc-500 flex items-center gap-1">
+                <i data-lucide="clock" class="size-3"></i>
+                {{ order.created_at|date:'d M Y' }}
+            </p>
+        </div>
+    {% endif %}
+        
+</section>

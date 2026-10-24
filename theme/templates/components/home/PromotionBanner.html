@@ -1,0 +1,15 @@
+{% load static %}
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 my-14 bg-green-950 rounded-2xl">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-8 xl:px-10">
+        <div class="text-center md:text-left">
+            <h2 class="font-serif text-3xl sm:text-4xl text-white mb-3">Get fresh groceries in minutes</h2>
+            <p class="text-white/70 mb-6 max-w-md">Download the Instacart app for exclusive deals, real-time tracking, and the freshest selection delivered right to your door.</p>
+            <div class="flex flex-wrap gap-3 justify-center md:justify-start">
+                <button class="px-6 py-3 bg-white text-green-950 font-semibold rounded-xl hover:bg-orange-100">App Store</button>
+                <button class="px-6 py-3 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors border border-white/20">Google Play</button>
+            </div>
+        </div>
+
+        <img src="{% static 'images/delivery_truck.svg' %}" alt="Delivery Truck" class="max-w-60 sm:max-w-120 xl:pr-10">
+    </div>
+</section>

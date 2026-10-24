@@ -1,0 +1,23 @@
+<section>
+    <div class="fixed inset-0 bg-black/40 z-50"></div>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <form method="POST" action="" class="bg-white rounded-2xl p-6 w-full max-w-sm animate-fade-in">
+            {% csrf_token %}
+
+            <h3 class="text-lg font-semibold text-red-600 mb-2">Cancel Delivery</h3>
+
+            <input type="hidden" name="order_id" value="{{ cancelModal }}">
+
+            <p class="text-sm text-zinc-500 mb-4">Please provide a reason for cancellation.</p>
+            <textarea name="cancel_reason" id="" rows="3" placeholder="Reason..." class="w-full px-4 py-3 text-sm rounded-xl border border-zinc-400 focus:border-red-400 outline-none resize-none mb-4"></textarea>
+            <div class="flex gap-2">
+                <a href="?cancelModal=None" class="flex-1 flex justify-center py-2.5 text-sm font-medium text-zinc-600 bg-zinc-100 rounded-xl hover:bg-zinc-200 transition-colors">
+                    Back
+                </a>
+                <button name="cancelSubmit" type="submit" class="flex-1 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50">
+                    Confirm Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</section>

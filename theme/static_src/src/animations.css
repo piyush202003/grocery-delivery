@@ -1,0 +1,99 @@
+.no-scrollbar {
+    -ms-overflow-style: none;  /* Internet Explorer and Edge */
+    scrollbar-width: none;     /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;             /* Chrome, Safari, Opera */
+}
+
+@import "tailwindcss";
+
+@theme {
+    /* Slide In */
+    --animate-slide-in-right: slide-in-right 0.3s ease-out;
+    --animate-slide-in-left: slide-in-left 0.3s ease-out;
+    --animate-slide-in-up: slide-in-up 0.3s ease-out;
+
+    /* Slide Out */
+    --animate-slide-out-right: slide-out-right 0.3s ease-in;
+    --animate-slide-out-down: slide-out-down 0.3s ease-in;
+
+
+    /* Keyframes */
+
+    @keyframes slide-in-right {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slide-in-left {
+        from {
+            opacity: 0;
+            transform: translateX(-100%);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slide-in-up {
+        from {
+            opacity: 0;
+            transform: translateY(100%);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+
+    /* Slide Out */
+
+    @keyframes slide-out-right {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+    }
+
+    @keyframes slide-out-down {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateY(-100%);
+        }
+    }
+
+    --animate-fade-in: fade-in 0.3s ease-in-out;
+
+    @keyframes fade-in {
+        from {
+        opacity: 0;
+        }
+        to {
+        opacity: 1;
+        }
+    }
+
+}

@@ -1,0 +1,93 @@
+{% load static %}
+
+{% if order.status != "Delivered" and order.status != "Cancelled" %}
+  <div class="rounded-2xl overflow-hidden border border-app-border" style="height: 280px;">
+    
+    {% if liveLocation and liveLocation.lat != 0 or order.shippingAddress.lat %}
+      <div id="live-map" style="height: 100%; width: 100%;"></div>
+
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          // Initialize coordinates from view context
+          let initialLat = {{ liveLocation.lat|default:order.shippingAddress.lat|default:0 }};
+          let initialLng = {{ liveLocation.lng|default:order.shippingAddress.lng|default:0 }};
+          const orderId = "{{ order.id }}";
+
+          // 1. Initialize Map
+          const map = L.map('live-map', { zoomControl: false }).setView([initialLat, initialLng], 15);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+          // 2. Custom Icons
+          const truckIcon = L.icon({
+            iconUrl: "{% static 'images/truck.png' %}", // Adjust path to static image
+            iconSize: [36, 36],
+            iconAnchor: [18, 36],
+            popupAnchor: [0, -36]
+          });
+
+          const destinationIcon = L.icon({
+            iconUrl: "{% static 'images/destination.png' %}",
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32]
+          });
+
+          // 3. Markers
+          let truckMarker = null;
+          {% if liveLocation and liveLocation.lat != 0 %}
+            truckMarker = L.marker([{{ liveLocation.lat }}, {{ liveLocation.lng }}], { icon: truckIcon })
+              .addTo(map)
+              .bindPopup('Delivery Partner');
+          {% endif %}
+
+          {% if order.shipping_address.lat and order.shipping_address.lng %}
+            L.marker([{{ order.shipping_address.lat }}, {{ order.shipping_address.lng }}], { icon: destinationIcon })
+              .addTo(map)
+              .bindPopup('Delivery Address');
+          {% endif %}
+
+          // 4. WebSocket Listener for Live Updates
+          const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+          const socket = new WebSocket(wsProtocol + window.location.host + '/ws/tracking/' + orderId + '/');
+
+          socket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            const newLat = data.lat;
+            const newLng = data.lng;
+
+            if (newLat && newLng) {
+              if (truckMarker) {
+                // Smoothly update existing marker
+                truckMarker.setLatLng([newLat, newLng]);
+              } else {
+                // Create marker if it didn't exist initially
+                truckMarker = L.marker([newLat, newLng], { icon: truckIcon })
+                  .addTo(map)
+                  .bindPopup('Delivery Partner');
+              }
+              // Re-center map to updated location
+              map.panTo([newLat, newLng], { animate: true, duration: 1 });
+            }
+          };
+
+          socket.onerror = function (e) {
+            console.error("Tracking WebSocket error:", e);
+          };
+        });
+      </script>
+
+    {% else %}
+      <!-- Fallback display when no location is available -->
+      <div class="h-full bg-app-green/5 flex-center flex justify-center items-center">
+        <div class="text-center">
+          <svg class="size-8 text-app-green/40 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <p class="text-sm text-app-green/50 font-medium">Waiting for delivery partner location...</p>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+{% endif %}

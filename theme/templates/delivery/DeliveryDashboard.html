@@ -1,0 +1,93 @@
+{% extends 'delivery/DeliveryLayout.html' %}
+{% load static %}
+{% block title %}
+    Delivery Partner Dashboard
+{% endblock title %}
+    
+{% block content %}
+    <div class="space-y-6">
+        <!-- Tabs + Tracking toggle -->
+        {{ user.delivery_partner.is_active }}
+        <div class="flex items-center gap-2 flex-wrap">
+            
+            <a href="?tab=active">
+                <button class="px-4 py-2 text-sm font-medium rounded-xl transition-colors cursor-pointer
+                {% if tab == 'active' %}
+                    bg-green-900 text-white
+                {% else %}
+                    bg-white text-zinc-400 hover:bg-amber-50 border border-zinc-400
+                {% endif %}
+                ">
+                    Active
+                </button>
+            </a>
+            <a href="?tab=completed">
+                <button class="px-4 py-2 text-sm font-medium rounded-xl transition-colors cursor-pointer
+                {% if tab == 'completed' %}
+                    bg-green-900 text-white
+                {% else %}
+                    bg-white text-zinc-400 hover:bg-amber-50 border border-zinc-400
+                {% endif %}
+                ">
+                    Completed
+                </button>
+            </a>
+            <div class="ml-auto">
+                <a href="?tracking={% if tracking %}0{% else %}1{% endif %}">
+                    <button class="px-4 py-2 text-sm font-medium rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer
+                    {% if tracking %}
+                        bg-green-600 text-white
+                    {% else %}
+                        bg-white text-zinc-600 border border-zinc-400 hover:bg-amber-100
+                    {% endif %}
+                        
+                    ">
+                        <i data-lucide="navigation" class="w-3.5 h-3.5 
+                        {% if tracking %}
+                            animate-pulse
+                        {% endif %}
+                        "></i>
+                        {% if tracking %}
+                            'Sharing Location'
+                        {% else %}
+                            'Share Location'
+                        {% endif %}
+                    </button>
+                </a>
+            </div>
+        </div>
+
+        <!-- Orders -->
+        {% if orders|length == 0 %}
+            <div class="text-center py-16 bg-white rounded-2xl border border-zinc-400">
+                <i data-lucide="package" class="size-12 text-zinc-400 mx-auto mb-3"></i>
+                <p class="text-lg font-semibold text-zinc-900 mb-1">No {{ tab }} deliveries</p>
+                <p class="text-sm text-zinc-500">
+                    {% if tab == 'active' %}
+                        You'll see new assignment here
+                    {% else %}
+                        Completed deliveries will appear here
+                    {% endif %}
+                </p>
+            </div>
+        {% else %}
+            <div class="space-y-4">
+                {% for order in orders %}
+                    {% include 'components/Delivery/DeliveryOrderCard.html' with order=order %}
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <!-- OTP Modal -->
+        {% if otpModal %}
+            {% include 'components/Delivery/OtpModal.html' with orderId=otpModal %}
+        {% endif %}
+
+        <!-- Cancel Modal -->
+        {% if cancelModal %}
+            {% include 'components/Delivery/CancelModal.html' %}
+        {% endif %}
+            
+    </div>
+{% endblock content %}
+    

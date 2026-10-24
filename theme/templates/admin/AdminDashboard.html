@@ -1,0 +1,80 @@
+{% extends 'admin/AdminLayout.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="space-y-6">
+
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            {% for card in cards %}
+                <div class="bg-white rounded-2xl p-5 border border-zinc-300 flex justify-between gap-3">
+                    <div>
+                        <p class="text-2xl font-semibold text-zinc-900">{{ card.value }}</p>
+                        <p class="text-sm text-zinc-400">{{ card.label }}</p>
+                    </div>
+                    <div class="size-10 rounded-xl flex items-center justify-center bg-orange-50 text-orange-600">
+                        <i data-lucide="{{ card.icon }}" class="size-5"></i>
+                    </div>
+                </div>
+            {% endfor %}
+                
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="bg-white rounded-2xl border border-zinc-300 overflow-hidden">
+            <div class="px-6 py-5 border-b border-zinc-300 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-zinc-900">Recent Orders</h2>
+                <a href="{% url 'AdminOrders' %}" class="text-sm font-medium text-orange-300 hover:text-orange-400 transition-colors">
+                    View All →
+                </a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-amber-50/50 text-zinc-500 uppercase text-xs font-semibold ">
+                        <tr>
+                            <th class="px-6 py-3">Order Id</th>
+                            <th class="px-6 py-3">Customer</th>
+                            <th class="px-6 py-3">Items</th>
+                            <th class="px-6 py-3">Total</th>
+                            <th class="px-6 py-3">Status</th>
+                            <th class="px-6 py-3">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-300">
+                        
+                        {% for order in stats.recentOrders %}
+                            <tr class="hover:bg-zinc-50/50 transition-colors">
+                                <td class="px-6 py-4 font-mono text-xs text-zinc-500">#{{ order.id|slice:'-6:'|upper }}</td>
+                                <td class="px-6 py-4">
+                                    <p class="font-medium text-zinc-900">
+                                        {% if order.user.first_name %}
+                                            {{ order.user.first_name }} {{ order.user.last_name }}
+                                        {% else %}
+                                            {{ order.user.username }}
+                                        {% endif %}
+                                    </p>
+                                    <p class="font-medium text-zinc-900">{{ order.user.email|default:'' }}</p>
+                                </td>
+                                <td class="px-6 py-4 text-zinc-600">{{ order.items.count }} items</td>
+                                <td class="px-6 py-4 font-medium">$ {{ order.total }}</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-zinc-100 text-zinc-600">
+                                        {{ order.status }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-zinc-500">{{ order.updated_at|date:'d M Y' }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="px-6 py-8 text-center text-zinc-500">No orders yet.</td>
+                            </tr>
+                        {% endfor %}
+                            
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+    

@@ -1,0 +1,4 @@
+@import "tailwindcss";
+@import "./animations.css";
+
+@source "../../../**/*.{html,py,js}";

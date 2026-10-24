@@ -1,0 +1,172 @@
+{% extends 'admin/AdminLayout.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="space-y-6">
+        <div class="flex items-center justify-between">
+            <h1 class="text-xl font-semibold text-zinc-900">Delivery Partners</h1>
+            <button id="partnerFormBtn" class="px-4 py-2 bg-green-900 text-white text-sm font-semibold rounded-xl hover:bg-green-600 transition-colors flex items-center gap-2 cursor-pointer">
+                <i data-lucide="plus" class="size-4"></i>
+                Add Partner
+            </button>
+        </div>
+
+        <!-- Partners Grid -->
+        {% if partners|length == 0 %}
+            <div class="text-center py-16 bg-white rounded-2xl border broder-zinc-400">
+                <i data-lucide="truck" class="size-12 text-zinc-400 mx-auto mb-3"></i>
+                <p class="text-lg font-semibold text-zinc-900 mb-1"> No delivery partners</p>
+                <p class="text-sm text-zinc-500">Onboard your first partner to get started</p>
+            </div>
+        {% else %}
+            <div class="grid groid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                
+                {% for p in partners %}
+                    <div class="bg-white rounded-2xl border border-zinc-400 p-5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="size-10 rounded-full bg-green-900 flex items-center justify-center">
+                                    <span class="text-white font-semibold text-sm">{{ p.user.first_name|first|upper }}</span>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-zinc-900 text-sm">{{ p.user }}</p>
+                                    <p class="text-xs text-zinc-500 capitalize">{{ p.vehicle_type }}</p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 text-[10px] font-semibold rounded-full
+                            {% if p.is_active %}
+                                bg-green-100 text-green-700
+                            {% else %}
+                                bg-red-100 text-red-700
+                            {% endif %}
+                            ">
+                                {% if p.is_active %}
+                                    Active
+                                {% else %}
+                                    Inactive
+                                {% endif %}      
+                            </span>
+                        </div>
+                        <div class="space-y-1.5 text-sm text-zinc-600">
+                            <p class="flex items-center gap-2">
+                                <i data-lucide="mail" class="w-3.5 h-3.5 text-zinc-400"></i>
+                                {{ p.user.email }}
+                            </p>
+                            <p class="flex items-center gap-2">
+                                <i data-lucide="phone" class="w-3.5 h-3.5 text-zinc-400"></i>
+                                {{ p.user.phone }}
+                            </p>
+                        </div>
+                        <a href="?active_status=1&partner_id={{ p.id }}"
+                        class="w-full py-2 text-xs font-medium flex justify-center rounded-lg transition-colors {% if p.is_active %} bg-red-50 text-red-600 hover:bg-red-100{% else %} bg-green-50 text-green-600 hover:bg-green-100{% endif %}"
+                        >
+                            {% if p.is_active %}
+                                Deactivate
+                            {% else %}
+                                Activate
+                            {% endif %}
+                        </a>
+                    </div>
+                {% endfor %}
+                    
+            </div>
+        {% endif %}
+            
+    </div>
+    
+    <!-- Delivery Partner Form -->
+    <div id="partner-form" class="hidden">
+        <div id="partner-form-cl-bg" class="fixed inset-0 bg-amber-50/80 backdrop-blur z-50"></div>
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-[fadeIn_.2s_ease-out]">
+
+            <form action="" method="POST">
+                {% csrf_token %}
+
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-lg font-semibold text-green-900">Onboard Delivery Partner</h2>
+                    <button id="partner-form-cl-btn" class="p-2 hover:bg-amber-100 rounded-lg cursor-pointer">
+                        <i data-lucide="x" class="size-5"></i>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="">
+                            <label for="" class="block text-sm font-medium text-green-900 mb-1.5">First Name</label>
+                            <input type="text" required name="first_name" class="w-full px-4 py-2.5 text-sm rounded-xl border border-zinc-400 focus:border-green-900 outline-none">
+                        </div>
+                        <div class="">
+                            <label for="" class="block text-sm font-medium text-green-900 mb-1.5">Middle Name</label>
+                            <input type="text" required name="middel_name" class="w-full px-4 py-2.5 text-sm rounded-xl border border-zinc-400 focus:border-green-900 outline-none">
+                        </div>
+                        <div>
+                            <label for="" class="block text-sm font-medium text-green-900 mb-1.5">Last Name</label>
+                            <input type="text" required name="last_name" class="w-full px-4 py-2.5 text-sm rounded-xl border border-zinc-400 focus:border-green-900 outline-none">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="" class="block text-sm font-medium text-green-900 mb-1.5">Email</label>
+                            <input type="email" required name="email" class="w-full px-4 py-2.5 text-sm rounded-xl border border-zinc-400 focus:border-green-900 outline-none">
+                        </div>
+                        <div>
+                            <label for="" class="block text-sm font-medium text-green-900 mb-1.5">Password</label>
+                            <input type="password" required minlength="6" name="password" class="w-full px-4 py-2.5 text-sm rounded-xl border border-zinc-400 focus:border-green-900 outline-none">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="" class="block text-sm font-medium text-green-900 mb-1.5">Phone</label>
+                            <input type="text" required name="phone" class="w-full px-4 py-2.5 text-sm rounded-xl border border-zinc-400 focus:border-green-900 outline-none">
+                        </div>
+                        <div>
+                            <label for="" class="block text-sm font-medium text-green-900 mb-1.5">Vehicle Type</label>
+                            <select name="vehicle_type" id="" class="w-full px-4 py-2.5 text-sm rounded-xl border border-zinc-400 focus:border-green-900 outline-none bg-white">
+                                <option value="bike">Bike</option>
+                                <option value="scooter">Scooter</option>
+                                <option value="car">Car</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="mt-6 w-full py-3 bg-green-900 text-white font-semibold rounded-xl hover:bg-green-600 transition-colors disabled:opacity-60 cursor-pointer">
+                    Create Partner
+                </button>
+            </form>
+        </div>
+    </div>
+    
+        
+    <script>
+        const partnerFormBtn = document.getElementById('partnerFormBtn');
+        const partnerForm = document.getElementById('partner-form');
+        const partnerFormClBtn = document.getElementById('partner-form-cl-btn');
+        const partnerFromClBg = document.getElementById('partner-form-cl-bg');
+    
+        if(partnerFormBtn){
+            partnerFormBtn.addEventListener('click',()=>{
+                partnerForm.classList.remove('hidden');
+                sessionStorage.setItem('partnerForm','true');
+            })
+        }
+
+        if(partnerFormClBtn){
+            partnerFormClBtn.addEventListener('click',()=>{
+                partnerForm.classList.add('hidden');
+                sessionStorage.removeItem('partnerForm');
+            })
+        }
+
+        if(partnerFromClBg){
+            partnerFormClBtn.addEventListener('click', ()=>{
+                partnerForm.classList.add('hidden');
+                sessionStorage.removeItem('partnerForm');
+            })
+        }
+
+        if(sessionStorage.getItem('partnerForm') === 'true'){
+            partnerForm.classList.remove('hidden');
+        }
+    </script>
+{% endblock content %}
+    

@@ -1,0 +1,151 @@
+{% extends 'admin/AdminLayout.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="bg-white rounded-2xl shadow-sm border border-zinc-400 overflow-hidden">
+        <div class="px-6 py-5 border-b border-zinc-400">
+            <h2 class="text-xl font-semibold text-zinc-900">Orders</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm whitespace-nowrap">
+                <thead class="bg-amber-100/50" text-zinc-500 uppercase text-xs font-semibold>
+                    <tr>
+                        <th class="px-4 py-4">Order Details</th>
+                        <th class="px-4 py-4">Customer</th>
+                        <th class="px-4 py-4">Total</th>
+                        <th class="px-4 py-4">Delivery Partner</th>
+                        <th class="px-4 py-4">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-amber-50">
+                    
+                    {% for order in orders %}
+                        <tr class="hover:bg-zinc-50/50 transition-colors">
+                            <td class="px-4 py-4">
+                                <p class="font-semibold text-zinc-900">#{{ order.id|slice:'-6:'|upper }}</p>
+                                <p class="text-xs text-zinc-500">{{ order.created_at|date:'d M Y' }}</p>
+                            </td>
+                            <td class="px-4 py-4">
+                                <p class="font-medium text-zinc-900">{{ order.user.first_name|default:order.user.username }} {{ order.user.last_name }}</p>
+                                <p class="text-xs text-zinc-500">{{ order.user.email|default:'No email' }}</p>
+                            </td>
+                            <td class="px-4 py-4 font-medium">$ {{ order.total }}</td>
+                            <td class="px-4 py-4">
+                                
+                                {% if order.delivery_partner %}
+                                    <div class="flex items-center gap-2">
+                                        <div class="size-6 rounded-full bg-green-900 flex items-center justify-center">
+                                            <span class="text-white text-[10px] font-semibold">{{ order.delivery_partner.user.first_name|first|upper }}</span>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-medium text-zinc-900">{{ order.delivery_partner.user }}</p>
+                                            <p class="text-[10px] text-zinc-500">{{ order.delivery_partner.phone }}</p>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <!-- onClick={() => { setAssignModal(order._id); setSelectedPartner(""); }} -->
+                                    {% if order.status == 'Confirmed' %}
+                                        <a href="?assignModal={{ order.id }}" class="px-3 py-1.5 text-xs font-medium bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors flex items-center justify-center gap-1">
+                                            <i data-lucide="truck" class="size-3"></i>
+                                            Assign
+                                        </a>
+                                    {% else %}
+                                        <span class="inline-block max-w-[150px] text-xs leading-4 text-zinc-500">
+                                            Confirm order before assigning
+                                        </span>
+                                    {% endif %}
+                                        
+                                {% endif %}
+                                    
+                            </td>
+                            <td class="px-4 py-4">
+                                <form method="POST" action="{% url 'AdminOrders' %}" name="status">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                                    {% if order.status == 'Placed' %}
+                                        <select 
+                                            value="{{ oreder.status }}" 
+                                            onchange="this.form.submit()"
+                                            name="status_change"
+                                            class="px-3 py-1.5 rounded-lg text-xs font-semibold border-r-8 border-transparent outline-none cursor-pointer leading-tight bg-zinc-100 text-zinc-800"
+                                        >
+                                            <option value="">Placed</option>
+                                            <option value="Confirmed">Confirm</option>
+                                            <option value="Cancelled">Cancel</option>
+                                        </select>
+                                    {% elif order.status == 'Confirmed' %}
+                                        <span class="inline-block max-w-[150px] text-xs leading-4 text-zinc-500">
+                                            Assign Delivery Partner
+                                        </span>
+                                    {% else %}
+                                        <span class="px-3 py-1.5 rounded-lg text-xs font-semibold border-r-8 border-transparent outline-none cursor-pointer leading-tight bg-zinc-100 text-zinc-800">{{ order.status }}</span>
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-4 py-8 text-center text-zinc-500">No orders found.</td>
+                        </tr>
+                    {% endfor %}
+                        
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Assign Modal -->
+    
+    {% if assignModal %}
+        <div class="fixed inset-0 bg-amber-100/80 backdrop-blur z-50"></div>
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <form method="POST" action="{% url 'AdminOrders' %}?assignModal=None" class="bg-white rounded-2xl p-6 w-full max-w-sm animate-fade-in">
+                <h3 class="text-lg font-semibold text-green-900 mb-2">Adding Delivery Partner</h3>
+                <h4 class="text-sm font-semibold text-green-900 mb-4">For Order Id = #{{ assignModal|slice:'-6:'|upper }}</h4>
+
+                <div class="space-y-2 mb-5 max-h-60 overflow-y-auto">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_id" value="{{ assignModal }}">
+                    {% for partner in partners %}
+                        <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors {% if selectedPartner == partner.id %}border-green-900 bg-green-50{% else %} border-zinc-300 hover:bg-amber-50{% endif %}">
+
+                            <input type="radio" name="partner" value="{{ partner.id }}"
+                                {% if selectedPartner == partner.id %}checked{% endif %}
+                                class="text-green-900">
+
+                            <div class="size-8 rounded-full bg-green-900 flex items-center justify-center">
+                                <span class="text-white text-xs font-semibold">
+                                    {{ partner.user.first_name|first|upper }}
+                                </span>
+                            </div>
+
+                            <div>
+                                <p class="text-sm font-medium text-zinc-900">
+                                    {{ partner.user }}
+                                </p>
+
+                                <p class="text-xs text-zinc-500">
+                                    {{ partner.vehicle_type|capfirst }} • {{ partner.user.phone }}
+                                </p>
+                            </div>
+                        </label>
+                    {% empty %}
+                        <p class="text-center text-zinc-500 py-6">
+                            No delivery partners available.
+                        </p>
+                    {% endfor %}
+                </div>
+                <div class="flex gap-2">
+                    <a href="?assignModal=None" class="flex-1 flex justify-center py-2.5 text-sm font-medium text-zinc-600 bg-zinc-100 rounded-xl hover:bg-zinc-200 transition-colors">
+                        Cancel
+                    </a>
+                    <button name="assignPartner" class="flex-1 py-2.5 text-sm font-medium text-white bg-green-900 rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50">
+                        Assign
+                    </button>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+        
+{% endblock content %}
+    

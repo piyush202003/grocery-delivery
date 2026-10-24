@@ -1,0 +1,54 @@
+{% load static tailwind_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>
+    {% block title %}
+        Instacart
+    {% endblock title %}
+    </title>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    {% tailwind_css %}
+    <link rel="icon" href="{% static 'icons/favicon.png' %}">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    {% block head %}{% endblock %}
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    
+    {% include 'components/Messages.html' %}
+
+    <header>
+        {% include 'components/Banner.html' %}
+        {% include 'components/Navbar.html' %}
+    </header>
+    <main class="min-h-screen">
+        {% block content %}
+        
+        {% endblock content %}
+    </main>
+    
+    {% include 'components/Footer.html' %}
+    {% include 'components/CartSidebar.html' %}
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        lucide.createIcons();
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

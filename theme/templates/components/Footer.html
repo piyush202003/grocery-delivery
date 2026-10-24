@@ -1,0 +1,88 @@
+{% load static %}
+<footer class="bg-green-900 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Top -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="">
+                <a href="{% url 'Home' %}" class="flex items-center gap-2 md-4">
+                    <img src="{% static 'icons/delivery-white.svg' %}" class="size-6">
+                    <span class="text-xl font-semibold">Instacart</span>
+                </a>
+
+                <p class="text-sm text-white/70 mb-4">Bringing fresh, organic groceries straight from local farms to your doorstep. Nourish your home with Earth's finest.</p>
+            
+                <div class="flex gap-3">
+                    <a href="" class="size-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/2">
+                        <img src="{% static 'icons/facebook.svg' %}" class="size-6">
+                    </a>
+                    <a href="" class="size-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/2">
+                        <img src="{% static 'icons/instagram.svg' %}" class="size-6">
+                    </a>
+                </div>
+            </div>
+
+            <!-- Dynamic Sections -->
+            <div>
+                <h3 class="text-sm font-semibold uppercase mb-4">Quick Link</h3>
+                <ul class="space-y-2.5">
+                    <li class="text-sm text-white/70 hover:text-white">
+                        <a href="{% url 'Products' %}">All Products</a>
+                    </li>
+                    <li class="text-sm text-white/70 hover:text-white">
+                        <a href="{% url 'FlashDeals' %}">Flash Deals</a>
+                    </li>
+                    <li class="text-sm text-white/70 hover:text-white">
+                        <a href="{% url 'MyOrders' %}">Track Order</a>
+                    </li>
+                    <li class="text-sm text-white/70 hover:text-white">
+                        <a href="">Delivery Partner</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-semibold uppercase mb-4">Customer Service</h3>
+                <ul class="space-y-2.5">
+                    <li class="text-sm text-white/70 hover:text-white">
+                        <a href="">My Account</a>
+                    </li>
+                    <li class="text-sm text-white/70 hover:text-white">
+                        <a href="">Order History</a>
+                    </li>
+                    <li class="text-sm text-white/70 hover:text-white">
+                        <a href="">Addresses</a>
+                    </li>
+                    <li class="text-sm text-white/70 hover:text-white">
+                        <a href="">Help Center</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Contact -->
+            <div>
+                <h3 class="text0sm font-semibold uppercase mb-4">Contact Us</h3>
+                <ul class="space-y-3">
+                    <li class="flex gap-3 text-sm text-white/70">
+                        <img src="{% static 'icons/map-pin-white.svg' %}" class="size-6"> Muktainagar, Jalgaon, Maharastra
+                    </li>
+                    <li class="flex gap-3 text-sm text-white/70">
+                        <img src="{% static 'icons/phone-white.svg' %}" class="size-6"> +91 4578125487
+                    </li>
+                    <li class="flex gap-3 text-sm text-white/70">
+                        <img src="{% static 'icons/mail-white.svg' %}" class="size-6"> hello@example.com
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- Bottom -->
+        <div class="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p class="text-xs text-white/50">© 2026 Piyush. All rights reserved.</p>
+            <div class="flex gap-4">
+                <a href="" class="text-xs text-white/50 hover:text-white/70">Privacy Policy</a>
+                <a href="" class="text-xs text-white/50 hover:text-white/70">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+</footer>

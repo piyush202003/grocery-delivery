@@ -1,0 +1,22 @@
+{% load static %}
+
+<section class="bg-linear-to-r from-green-900 to-green-500 rounded-2xl p-6 text-white">
+    <div class="flex items-center gap-3 mb-3">
+        <div class="size-10 rounded-full bg-white/15 flex items-center justify-center">
+            <i data-lucide="key-round" class="size-5"></i>
+        </div>
+        <div>
+            <h3 class="font-semibold">Delivery OTP</h3>
+            <p class="text-xs text-white/70">Share this with your delivery partner</p>
+        </div>
+    </div>
+    <div class="flex gap-2 mt-2">
+        
+        {% for digit in order.delivery_otp %}
+            <div class="w-11 h-13 rounded-xl bg-white/15 flex items-center justify-center text-2xl font-mono font-bold tracking-wider">
+                {{ digit }}
+            </div>
+        {% endfor %}
+            
+    </div>
+</section>

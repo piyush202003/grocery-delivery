@@ -1,0 +1,14 @@
+{% extends 'AppLayout.html' %}
+{% block title %}InstaCart Home Page{% endblock %}
+
+{% block content %}
+    <div class="min-h-screen max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {% include 'components/home/Hero.html' %}
+        {% include 'components/home/Features.html' %}
+        {% include 'components/home/HomeCategories.html' %}
+        {% include 'components/home/PopularProducts.html' %}
+        {% include 'components/home/PromotionBanner.html' %}
+        {% include 'components/home/Newsletter.html' %}
+    </div>
+{% endblock content %}
+    

@@ -1,0 +1,70 @@
+<section>
+    {% if messages %}
+        <div id="messages-container" class="fixed top-5 right-5 z-[100] w-[calc(100%-2rem)] max-w-sm space-y-3">
+            {% for message in messages %}
+                <div class="message-item flex items-start gap-3 p-4 rounded-xl border shadow-lg backdrop-blur-sm animate-slide-in-right
+                        {% if message.tags == 'success' %}
+                            bg-green-50 border-green-200 text-green-800
+                        {% elif message.tags == 'error' %}
+                            bg-red-50 border-red-200 text-red-800
+                        {% elif message.tags == 'warning' %}
+                            bg-amber-50 border-amber-200 text-amber-800
+                        {% elif message.tags == 'info' %}
+                            bg-blue-50 border-blue-200 text-blue-800
+                        {% else %}
+                            bg-zinc-50 border-zinc-200 text-zinc-800
+                        {% endif %}
+                    "
+                    role="alert"
+                >
+
+                    <!-- Icon -->
+                    <div class="shrink-0 mt-0.5">
+                        {% if message.tags == 'success' %}
+                            <i data-lucide="circle-check" class="size-5"></i>
+                        {% elif message.tags == 'error' %}
+                            <i data-lucide="circle-alert" class="size-5"></i>
+                        {% elif message.tags == 'warning' %}
+                            <i data-lucide="triangle-alert" class="size-5"></i>
+                        {% else %}
+                            <i data-lucide="info" class="size-5"></i>
+                        {% endif %}
+                    </div>
+
+                    <!-- Message -->
+                    <p class="flex-1 text-sm font-medium">
+                        {{ message }}
+                    </p>
+
+                    <!-- Close Button -->
+                    <button
+                        type="button"
+                        class="shrink-0 p-1 rounded-lg opacity-60 hover:opacity-100 hover:bg-black/5 transition cursor-pointer"
+                        onclick="this.closest('.message-item').remove()"
+                        aria-label="Close"
+                    >
+                        <i data-lucide="x" class="size-4"></i>
+                    </button>
+
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <script>
+        document.querySelectorAll(".message-item").forEach((message) => {
+
+            setTimeout(() => {
+
+                message.classList.remove("animate-slide-in-right");
+                message.classList.add("animate-slide-out-right");
+
+                setTimeout(() => {
+                    message.remove();
+                }, 500);
+
+            }, 5000);
+
+        });
+    </script>
+</section>

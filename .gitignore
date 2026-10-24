@@ -1,0 +1,65 @@
+=========================
+Python / Django
+=========================
+Virtual environment
+.venv/
+venv/
+
+Python cache
+
+pycache/
+*.py[cod]
+*$py.class
+
+Django
+
+*.log
+db.sqlite3
+db.sqlite3-journal
+
+Django static/media files
+
+staticfiles/
+media/
+static/
+
+Environment variables
+
+.env
+.env.*
+!.env.example
+
+=========================
+IDE / Editors
+=========================
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+OS files
+
+.DS_Store
+Thumbs.db
+
+=========================
+Coverage / Testing
+=========================
+
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.coverage.*
+*.cover
+
+=========================
+Temporary files
+=========================
+
+*.tmp
+*.temp
+*.bak
+*.swp
+.cache/

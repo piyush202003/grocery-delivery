@@ -1,0 +1,45 @@
+<section>
+    <div class="bg-white rounded-2xl p-6 animate-fade-in">
+        <h2 class="text-lg font-semibold text-green-900 mb-5 flex items-center gap-2">
+            <i data-lucide="check" class="size-5"></i>
+            Review Your Order
+        </h2>
+        <div class="bg-amber-50 rounded-xl p-3 space-y-1">
+            <h3 class="font-semibold text-green-900 flex items-center gap-2">
+                <i data-lucide="truck" class="size-5"></i>
+                Delivery Address
+            </h3>
+            <p class="text-sm text-zinc-500">
+                {{ address.label }} --- {{ address.address }}, {{ address.city }}, {{ address.state }}, {{ address.zip }}
+            </p>
+        </div>
+        <div class="space-y-1">
+            
+            {% for item in cart.cart_items %}
+                <div class="flex items-center justify-between m-2">
+                    <div class="flex items-center gap-1">
+                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="size-15">
+                        <div class="flex-1">
+                            <h4 class="text-sm font-semibold text-green-900">{{ item.product.name }}</h4>
+                            <span class="text-xs text-zinc-400">Qty: {{ item.quantity }}</span>
+                        </div>
+                    </div>
+                    <span class="text-sm text-green-900 font-semibold">${{ item.total }}</span>
+                </div>
+            {% empty %}
+                <div class="flex flex-col items-center justify-center h-full text-center">
+                    <i data-lucide="shopping-bag" class="size-16 md-4"></i>
+                    <h3 class="text-lg font-medium mb-1">Your cart is empty</h3>
+                </div>
+            {% endfor %}
+            
+                
+            <a href="?placeOrder=True">
+                <button class="bg-amber-600 hover:bg-amber-500 flex items-center justify-center w-full py-2.5 px-4 mx-auto cursor-pointer text-white transition-colors rounded-xl text-base font-semibold">
+                    Place Order -- ${{ cart.last_total }}
+                </button>
+            </a>
+                
+        </div>
+    </div>
+</section>

@@ -1,0 +1,148 @@
+{% load static %}
+<section>
+    <nav class = "bg-white sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 gap-4">
+            
+            {% comment %} Logo {% endcomment %}
+            <a href="{% url 'Home' %}" class="flex items-center gap-2 text-[22px] font-semibold shrink-0 text-green-900">
+                <img src="{% static 'icons/delivery.svg' %}" alt="" class="size-8"> Instacart
+            </a>
+            <div class="w-full flex items-center justify-end gap-4 lg:gap-10">
+                
+                {% comment %} Nav Links - Desktop {% endcomment %}
+                <div class="hidden md:flex items-center gap-6 text-sm text-zinc-600 font-medium">
+                    <a href="{% url 'Home' %}" class="cursor-pointer">Home</a>
+                    <a href="{% url 'Products' %}" class="cursor-pointer">Products</a>
+                    <a href="{% url 'FlashDeals' %}" class="text-orange-400 cursor-pointer">Deals</a>
+                </div>
+
+                {% comment %} Search {% endcomment %}
+                <form action="{% url 'SearchResults' %}" class="hidden sm:flex flex-1 max-w-sm text-xs">
+                    <div class="relative w-full">
+                        <img src="{% static 'icons/search.svg' %}" alt="" class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4">
+                        <input type="text" name="search" placeholder="Search for groceries...." class="w-full pl-8 p-2 bg-orange-50 rounded-full ring ring-orange-300 focus:outline-none focus:ring-orange-600">
+                    </div>
+                </form>
+
+                {% comment %} Right Actions {% endcomment %}
+                <div class="flex items-center gap-3">
+                    
+                    {% comment %} Cart This sidebar cart btn is getting used in CartSidebar.html {% endcomment %}
+                    <button id="sidebar-cart-btn" class="relative p-2 rounded-xl hover:cursor-pointer hover:bg-amber-200">
+                        <img src="{% static 'icons/cart.svg' %}" alt="" class="size-6">
+                        {% if cart.cart_count > 0 %}
+                            <span class="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] font-bold">{{ cart.cart_count }}</span>
+                        {% endif %}
+                    </button>
+
+                    {% comment %} User {% endcomment %}
+                    <div class="relative">
+                        {% if user.is_authenticated %}
+                            <button id="menu-btn-lg-screen" class="flex items-center gap-2 p-2 cursor-pointer">
+                                <div class="size-7 rounded-full bg-green-900 text-white flex items-center justify-center">
+                                    {% if user.first_name %}
+                                        {{ user.first_name|first|upper }}
+                                    {% else %}
+                                        {{ user.username|first|upper }}
+                                    {% endif %}
+                                </div>
+                                <img id="chevron-icon" src="{% static 'icons/chevron-down.svg' %}" class="size-4 transition-transform duration-200 ease-in-out">
+                            </button>
+                        {% else %}
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="{% url 'Login' %}" class="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-900 rounded-full hover:bg-green-600 transition-colors cursor-pointer">
+                                    <img src="{% static 'icons/user-circle-white.svg' %}" class="size-6">
+                                    Sign In
+                                </a>
+                                <button id="menu-btn" class="md:hidden cursor-pointer">
+                                    <img id="menu-icon" src="{% static 'icons/menu-dark.svg' %}" class="size-6">
+                                </button>
+                            </div>
+                        {% endif %}
+
+                        <div id="mobile-menu" class="hidden absolute right-0 mt-2 w-56 rounded-xl bg-white shadow-lg border transition-all duration-200 origin-tops">
+                            <div class="absolute right-0 mt-2.5 w-56 bg-white rounded-xl shadow-lg border py-2 z-50 animate-fade-in">
+                                {% if user.is_authenticated %}
+                                    <div class="px-4 py-2 border-b border-zinc-200">
+                                        <p class="text-sm font-medium text-zinc-800">
+                                            {% if user.first_name %}
+                                                {{ user.first_name }} {{ user.last_name }}
+                                            {% else %}
+                                                {{ user.username }}
+                                            {% endif %}
+                                        </p>
+                                        <p class="text-xs text-zinc-500">{{ user.email }}</p>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if not user.is_authenticated %}
+                                    <a href="{% url 'Login' %}" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-md">
+                                        <img src="{% static 'icons/user-circle-dark.svg' %}" class="size-6"> Sign In 
+                                    </a>
+                                {% endif %}
+                                
+                                {% if user.is_authenticated %}
+                                    <a href="{% url 'MyOrders' %}" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-md">
+                                        <img src="{% static 'icons/package-dark.svg' %}" class="size-6"> My Orders
+                                    </a>
+                                    <a href="{% url 'Addresses' %}" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-md">
+                                        <img src="{% static 'icons/map-pin.svg' %}" class="size-6"> Addresses
+                                    </a>
+                                    <a href="{% url 'Products' %}" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-md">
+                                        <img src="{% static 'icons/arrow-up-right.svg' %}" class="size-6"> Products 
+                                    </a>
+                                    <a href="{% url 'FlashDeals' %}" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-md">
+                                        <img src="{% static 'icons/discount-shape.svg' %}" class="size-6"> Flash Deals
+                                    </a>
+                                {% endif %}
+                                
+                                {% if user.is_staff %}
+                                    <a href="{% url 'AdminDashboard' %}" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-md">
+                                        <img src="{% static 'icons/shield.svg' %}" class="size-6">
+                                        <span class="text-orange-500">Admin Panel</span> 
+                                    </a>
+                                {% endif %}
+                                    
+                                {% if user.is_authenticated %}
+                                    <div class="border-t pt-1 border-zinc-200">
+                                        <a href="{% url 'Logout' %}" class="flex items-center gap-3 px-4 py-2.5 font-semibold text-red-400 hover:bg-red-50 w-full transition-colors">
+                                            <img src="{% static 'icons/logout-red.svg' %}" class="size-6">
+                                            Logout
+                                        </a>
+                                    </div>
+                                {% endif %}
+                                    
+                                    
+                            </div>
+                        </div>   
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+        const menuBtn = document.getElementById("menu-btn");
+        const menu = document.getElementById("mobile-menu");
+        const icon = document.getElementById("menu-icon");
+        if (menuBtn) {
+            menuBtn.addEventListener("click", ()=>{
+                menu.classList.toggle("hidden");
+                if(menu.classList.contains("hidden")){
+                    icon.src = "{% static 'icons/menu-dark.svg' %}";
+                } else {
+                    icon.src = "{% static 'icons/cancel.svg' %}";
+                }
+            });
+        }
+
+        const menuBtnLg = document.getElementById("menu-btn-lg-screen");
+        const chevron = document.getElementById("chevron-icon");
+        if(menuBtnLg){
+            menuBtnLg.addEventListener("click", () => {
+                menu.classList.toggle("hidden");
+                chevron.classList.toggle("rotate-180");
+            })
+        }
+    </script>
+</section>

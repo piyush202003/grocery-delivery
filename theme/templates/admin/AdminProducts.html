@@ -1,0 +1,73 @@
+{% extends 'admin/AdminLayout.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="bg-white rounded-2xl shadow-sm border border-zinc-400 overflow-hidden">
+        <div class="px-6 py-5 border-b border-zinc-400 flex items-center justify-between gap-4 flex-wrap">
+            <h2 class="text-xl font-semibold text-zinc-900">Products</h2>
+            <a href="{% url 'AdminProductForm' %}" class="flex items-center gap-2 px-4 py-2 bg-green-900 text-white rounded-xl hover:bg-green-950 transition-colors font-medium text-sm">
+                <i data-lucide="plus" class="size-4"></i>
+                Add Product
+            </a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm whitespace-nowrap">
+                <thead class="bg-amber-100/50 text-zinc-500 uppercase text-xs font-semibold">
+                    <tr>
+                        <th class="px-6 py-4">Product</th>
+                        <th class="px-6 py-4">Price</th>
+                        <th class="px-6 py-4">Stock</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-amber-100">
+                    
+                    {% for product in products %}
+                        <tr class="hover:bg-zinc-50/50 transition-colors ">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="size-12 rounded-lg object-cover">
+                                    <div>
+                                        <p class="font-semibold text-zinc-900">{{ product.name }}</p>
+                                        <p class="text-xs text-zinc-500">{{ product.category|default:"Uncategorized" }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 font-medium">$ {{ product.price }}</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold
+                                {% if product.stock > 0 %}
+                                    bg-green-100 text-green-700
+                                {% else %}
+                                    bg-red-100 text-red-700
+                                {% endif %}">
+                                    {% if product.stock > 0 %}
+                                        {{ product.stock }} in stock
+                                    {% else %}
+                                        Out of stock
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{% url 'AdminProductFormEdit' product.id %}" title="Edit {{ product.name }} Info" class="p-2 text-zinc-500 hover:text-orange-300 bg-zinc-100 hover:bg-amber-50 rounded-lg transition-colors">
+                                        <i data-lucide="edit" class="size-4"></i>
+                                    </a>
+                                    <a href="{% url 'AdminProductOutOfStock' product.id %}" title="Mark Out of Stock" class="flex items-center justify-center p-2 text-zinc-500 hover:text-red-600 bg-zinc-100 hover:bg-red-50 rounded-lg transition-colors" onclick="return confirm('Are you sure you want to Mart this Product out of Stock?')">
+                                        <i data-lucide="x" class="size-4"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-8 text-center text-zinc-500">No products found.</td>
+                        </tr>
+                    {% endfor %}
+                        
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock content %}
+    

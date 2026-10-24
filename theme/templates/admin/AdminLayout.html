@@ -1,0 +1,117 @@
+{% load static tailwind_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>
+    {% block title %}
+        Admin Panal
+    {% endblock title %}
+    </title>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    {% tailwind_css %}
+    <link rel="icon" href="{% static 'icons/favicon.png' %}">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    {% block head %}{% endblock %}
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    
+    {% include 'components/Messages.html' %}
+
+    <div class="h-screen overflow-hidden bg-amber-50">
+        <!-- <div class="max-lg:hidden"> -->
+        <div>
+            {% include 'components/Navbar.html' %}
+        </div>
+
+        <div class="flex flex-col h-full lg:flex-row gap-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+            <!-- Admin Sidebar -->
+            <aside class="w-full lg:w-64 shrink-0 h-fit bg-white rounded-2xl p-1 border border-zinc-400 overflow-hidden">
+                <details class="lg:hidden group">
+                    <summary class="list-none cursor-pointer p-4 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-green-900 flex items-center gap-2">
+                            <i data-lucide="shield" class="size-5 text-green-900"></i>
+                            Admin Panel
+                        </h2>
+
+                        <i data-lucide="chevron-down" class="size-5 text-zinc-500 transition-transform group-open:rotate-180"></i>
+                    </summary>
+
+                    <nav class="flex flex-col gap-1.5 px-1 pb-1 pt-1 border-t border-zinc-400">
+                        
+                        {% for link in AdminLinkData %}
+                            <a href="{% url link.to %}" class="flex items-center gap-3 p-2 rounded-md text-sm transition-colors 
+                            {% if request.resolver_match.url_name == link.to %}
+                                bg-green-900 text-white
+                            {% else %}
+                                text-zinc-400 hover:bg-orange-50 hover:text-zinc-900
+                            {% endif %}
+                            ">
+                                <i data-lucide="{{ link.icon }}" class="size-4"></i>
+                                {{ link.label }}
+                            </a>
+                        {% endfor %}
+                            
+                    </nav>
+                </details>
+                
+                <!-- Desktop Sidebar -->
+                <div class="hidden lg:block p-4">
+                    <div class="pb-4 mb-4 border-b border-zinc-400">
+                        <h2 class="text-lg font-semibold text-green-900 flex items-center gap-2 px-2">
+                            <i data-lucide="shield" class="size-5 text-green-900"></i>
+                            Admin Panel
+                        </h2>
+                    </div>
+                    <nav class="flex flex-col gap-1.5">
+                        
+                        {% for link in AdminLinkData %}
+                            <a href="{% url link.to %}"
+                            class="flex items-center gap-3 p-2.5 rounded-md text-sm transition-colors
+                            {% if request.resolver_match.url_name == link.to %}
+                                bg-green-900 text-white
+                            {% else %}
+                                text-zinc-400 hover:bg-orange-50 hover:text-zinc-900
+                            {% endif %}"
+                            >
+                                <i data-lucide="{{ link.icon }}" class="size-4"></i>
+                                {{ link.label }}
+                            </a>
+                        {% endfor %}
+                            
+                    </nav>
+                </div>
+            </aside>
+
+            <main class="flex-1 overflow-y-auto no-scrollbar pb-20">
+                
+                {% block content %}
+                    
+                {% endblock content %}
+                    
+            </main>
+        </div>
+
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        lucide.createIcons();
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

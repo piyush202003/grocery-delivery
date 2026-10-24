@@ -1,0 +1,44 @@
+{% extends 'AppLayout.html' %}
+{% block title %}InstaCart Search Result Page{% endblock %}
+
+{% block content %}
+    <div class="min-h-screen bg-amber-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <!-- Bread Crumb -->
+            <nav class="flex items-center gap-2 text-sm text-zinc-400 mb-6">
+                <a href="{% url 'Home' %}" class="hover:text-green-900 transition-colors">
+                    <i class="home" size-4></i>
+                </a>
+                <span>/</span>
+                <span class="text-green-900 font-medium">Search Result</span>
+            </nav>
+
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-2xl font-semibold text-green-900 mb-1">Results for "{{ search }}"</h1>
+                <p>{{ products|length }} items found</p>
+            </div>
+
+            <!-- Results -->
+            
+            {% if products %}
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {% for product in products %}
+                        {% include 'components/ProductCard.html' with product=product %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-20">
+                    <i data-lucide="search" class="size-16 text-zinc-400 mx-auto mb-4"></i>
+                    <h2 class="text-xl font-semibold text-green-900 mb-2">No results found</h2>
+                    <p class="text-xl font-semibold text-green-900 mb-2">We couldn't find any products matching "{{ search }}". Try a different search term.</p>
+                    <a href="{% url 'Products' %}" class="inline-flex px-5 py-2.5 bg-green-900 text-white text-sm font-medium rounded-lg">
+                        Browse All Products
+                    </a>
+                </div>
+            {% endif %}
+                
+        </div>
+    </div>
+{% endblock content %}
+    

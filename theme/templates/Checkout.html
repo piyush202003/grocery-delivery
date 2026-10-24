@@ -1,0 +1,98 @@
+{% extends 'AppLayout.html' %}
+{% block title %}InstaCart Checkout Page{% endblock %}
+
+{% block content %}
+    
+    {% if cart.cart_items|length == 0 %}
+        <div class="min-h-screen bg-amber-50 flex items-center justify-center">
+            <div class="text-center">
+                <h2 class="text-xl font-semibold text-green-900 mb-2">Your cart is empty</h2>
+                <p class="text-sm text-zinc-400 mb-4">Add some products to checkout</p>
+                <a href="{% url 'Products' %}">
+                    <button class="px-5 py-2.5 bg-green-900 text-white text-sm font-medium rounded-xl hover:bg-green-600 transition-colors">
+                        Browse Products
+                    </button>
+                </a>
+            </div>
+        </div>    
+    {% else %}
+        <div class="min-h-screen bg-amber-50">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Back Button -->
+                <button onclick="history.back()" class="flex items-center gap-2 text-sm text-zinc-400 hover:text-green-900 mb-6 transition-colors cursor-pointer">
+                    <i data-lucide="arrow-left" class="size-4"></i>
+                    Back
+                </button>
+
+                <h1 class="text-2xl font-semibold text-green-900 mb-8">Checkout</h1>
+                
+                <div class="flex items-center gap-2 mb-8">
+                    
+                    {% for s in steps %}
+                        <div class="flex items-center gap-2">
+                            <a href="{% url 'Checkout' %}?step={{ s.key }}">
+                                <button class="flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer
+                                {% if step == s.key %}
+                                    bg-green-900 text-white
+                                {% else %}
+                                    bg-white text-zinc-400 hover:border hover:border-zinc-400
+                                {% endif %}
+                                ">
+                                    <i data-lucide="{{ s.icon }}" class="size-4"></i>
+                                    {{ s.label }}
+                                    {% if forloop.counter < steps|length %}
+                                        <i data-lucide="chevron-right" class="size-4"></i>
+                                    {% endif %}
+                                        
+                                </button>
+                            </a>
+                        </div>
+                    {% endfor %}
+                        
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Main Form -->
+                    <div class="md:col-span-2">
+                        {% if step == 'address' %}
+                            {% include 'components/Checkout/CheckoutAddress.html' %}
+                        {% elif step == 'payment' %}
+                            {% include 'components/Checkout/CheckoutPayment.html' %}
+                        {% elif step == 'review' %}
+                            {% include 'components/Checkout/CheckoutReview.html' %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Order Summary Sidebar -->
+                    <div class="bg-white rounded-2xl p-5 h-fit sticky top-24">
+                        <h3 class="text-sm font-semibold text-zinc-400 mb-4">Order Summary</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-zinc-400">Subtotal {{ cart.cart_items|length }} items</span>
+                                <span>$ {{ cart.cart_total }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-zinc-400">Delivery</span>
+                                {% if cart.delivery_fee == 0 %}
+                                    <span class="text-green-500">Free</span>
+                                {% else %}
+                                    <span>$ {{ cart.delivery_fee }}</span>    
+                                {% endif %}
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-zinc-400">Tax</span>
+                                <span>$ {{ cart.tax }}</span>
+                            </div>
+                            <div class="flex justify-between pt-3 border-t border-zinc-400 text-base font-semibold">
+                                <span>Total</span>
+                                <span class="text-green-900">$ {{ cart.last_total }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+        
+{% endblock content %}
+    

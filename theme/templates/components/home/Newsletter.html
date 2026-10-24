@@ -1,0 +1,16 @@
+{% load static %}
+<section class="bg-zinc-100 py-18 px-4 sm:px-6 lg:px-8 rounded-3xl mx-auto shadow-xs mt-32 mb-20">
+    <div class="max-w-2xl mx-auto text-center">
+        <div class="size-16 bg-white rounded-xl flex items-center justify-center mx-auto mb-6 shadow">
+            <i data-lucide="mail" class="size-8"></i>
+        </div>
+        <h2 class="text-3xl font-semibold text-green-950 mb-4">Subscribe to our Newsletter</h2>
+        <p class="text-zinc-500 mb-8 text-base">Get weekly updates on fresh produce, seasonal offers, and exclusive discounts right to your inbox.</p>
+        
+        <form action="post">
+            {% csrf_token %}
+            <input type="email" placeholder="Enter your email address" required class="flex-1 px-5 py-3.5 rounded-xl border border-zinc-400 outline-none focus:border-green-400 focus:ring bg-white text-sm transition-all">
+            <button type="submit" class="px-8 py-3.5 bg-green-900 text-white font-semibold rounded-xl hover:bg-green-600 transition-colors shadow-sm whitespace-nowrap active:scale-[0.98]">Subscribe</button>
+        </form>
+    </div>
+</section>

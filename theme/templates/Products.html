@@ -1,0 +1,294 @@
+{% extends 'AppLayout.html' %}
+{% block title %}InstaCart Products Page{% endblock %}
+{% load static %}
+{% block content %}
+    <section class="min-h-screen bg-amber-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <!-- Breadcrumb -->
+            <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
+                <a href="{% url 'Home' %}" class="hover:text-green-500 transition-colors">
+                    <img src="{% static 'icons/home-grey.svg' %}" class="size-4">
+                </a>
+                <span>/</span>
+                <span class="text-green-900 font-medium">
+                {% if category %}
+                    {{ category|upper }}
+                {% else %}
+                    All Products    
+                {% endif %}
+                </span>
+            </nav>
+
+            <div class="flex gap-8 xl:gap-10">
+                <!-- sidebar - desktop -->
+                <aside class="hidden lg:block w-74 shrink-0">
+                    <form method="GET" action="{% url 'Products' %}">
+                        <div class="bg-white rounded-2xl p-4 sticky top-24 space-y-6">
+
+                            <!-- Categories -->
+                            <div>
+                                <h3 class="text-sm font-semibold text-green-900 mb-3">Categories</h3>
+                                <div class="space-y-1.5">
+
+                                    <!-- All Categories -->
+                                    <button type="submit" name="category" value="" class="block w-full text-left px-3 py-2 text-sm rounded-md transition-all
+                                        {% if not category %}
+                                            bg-green-600 text-white
+                                        {% else %}
+                                            text-zinc-500 hover:bg-amber-100
+                                        {% endif %}">
+                                        All Categories
+                                    </button>
+
+                                    {% for cat in categories %}
+                                        <button type="submit" name="category" value="{{ cat.slug }}" class="block w-full text-left px-3 py-2 text-sm rounded-md transition-all
+                                            {% if cat.slug == category %}
+                                                bg-green-600 text-white
+                                            {% else %}
+                                                text-zinc-500 hover:bg-amber-100
+                                            {% endif %}">
+                                            {{ cat.name }}
+                                        </button>
+                                    {% endfor %}
+
+                                </div>
+                            </div>
+
+                            <!-- Price Range -->
+                            <div>
+                                <h3 class="text-sm font-semibold text-green-900 mb-3">Price Range</h3>
+                                <div class="flex items-center gap-2">
+                                     <span class="text-zinc-400">-</span>
+                                    <input type="number" name="maxPrice" value="{{ maxPrice }}" placeholder="Max" min="0" class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-zinc-300 focus:border-green-900 outline-none">
+                                </div>
+
+                                <button type="submit" class="w-full mt-3 py-2 bg-green-900 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
+                                    Apply Filters
+                                </button>
+                            </div>
+
+                            <!-- Clear -->
+                            <a href="{% url 'Products' %}?clearAllFilters=1" class="block w-full py-2 text-center text-sm text-red-400 hover:bg-red-50 rounded-lg transition-colors font-medium">
+                                Clear All Filters
+                            </a>
+
+                        </div>
+                    </form>
+                </aside>
+
+                <!-- Main Content -->
+                <main class="flex-1">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between mb-6">
+                       <div>
+                            <h1 class="text-2xl font-semibold text-green-900">
+                            {% if category %}
+                                {{ category|upper }}
+                            {% else %}
+                                All Products
+                            {% endif %}
+                            </h1>
+                            <p class="text-sm text-zinc-400 mt-0.5">
+                                {{ products|length }} products found   
+                            </p>
+                        </div> 
+
+                        <div class="flex flex-col lg:items-center gap-3">
+                            <!-- mobile filter toggle -->
+                            <button id="mobile-filters-btn" class="lg:hidden flex items-center gap-2 px-3 py-2 text-sm bg-white rounded-xl border border-zinc-300 hover:bg-green-200 trnsition-colors">
+                                <img src="{% static 'icons/slider-horizontal-dark.svg' %}" class="size-4"> Filter
+                            </button>
+
+                            <!-- Sort -->
+                            <div class="relative">
+                                <form method="get">
+                                    <select name="sort" onchange="this.form.submit()" class="appearance-none pl-3 pr-8 py-2 text-sm bg-white rounded-xl border border-zinc-200 focus:border-green-900 focus:outline-none cursor-pointer">
+                                        <option value="" {% if not sort %}selected{% endif %}>
+                                            Newest
+                                        </option>
+
+                                        <option value="price_asc" {% if sort == "price_asc" %}selected{% endif %}>
+                                            Price: Low → High
+                                        </option>
+
+                                        <option value="price_desc" {% if sort == "price_desc" %}selected{% endif %}>
+                                            Price: High → Low
+                                        </option>
+
+                                        <option value="rating" {% if sort == "rating" %}selected{% endif %}>
+                                            Top Rated
+                                        </option>
+
+                                        <option value="name" {% if sort == "name" %}selected{% endif %}>
+                                            A → Z
+                                        </option>
+                                    </select>
+                                </form>
+
+                                <img src="{% static 'icons/chevron-down.svg' %}" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none">
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    <!-- Product Grid -->
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 xl:gap-8 ">
+                        {% for product in products %}
+                            
+                            {% include 'components/ProductCard.html' with product=product %}
+
+                        {% empty %}
+
+                            <div class="col-span-full text-center py-16">
+                                <p class="text-lg font-semibold text-green-900 mb-2">
+                                    No products found
+                                </p>
+
+                                <p class="text-sm text-zinc-400 mb-4">
+                                    Try adjusting your filters or search terms
+                                </p>
+
+                                <a href="{% url 'Products' %}">
+                                    <button class="px-5 py-2 text-sm font-medium bg-green-900 text-white rounded-xl hover:bg-green-600 transition-colors">
+                                        Clear Filter
+                                    </button>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="flex items-center justify-center gap-2 mt-10">
+
+                        {% if products.has_previous %}
+                            <a
+                                href="?category={{ category }}&organic={{ organic }}&sort={{ sort }}&minPrice={{ min_price }}&maxPrice={{ max_price }}&page={{ page_obj.previous_page_number }}"
+                                class="px-4 py-2 rounded-lg border border-zinc-200 text-sm hover:bg-zinc-100 transition"
+                            >
+                                Previous
+                            </a>
+                        {% endif %}
+
+
+                        {% for num in products.paginator.page_range %}
+
+                            {% if products.number == num %}
+
+                                <span
+                                    class="size-9 flex items-center justify-center rounded-lg bg-green-900 text-white text-sm font-medium"
+                                >
+                                    {{ num }}
+                                </span>
+
+                            {% else %}
+
+                                <a
+                                    href="?category={{ category }}&organic={{ organic }}&sort={{ sort }}&minPrice={{ min_price }}&maxPrice={{ max_price }}&page={{ num }}"
+                                    class="size-9 flex items-center justify-center rounded-lg border border-zinc-200 text-sm hover:bg-zinc-100 transition"
+                                >
+                                    {{ num }}
+                                </a>
+
+                            {% endif %}
+
+                        {% endfor %}
+
+
+                        {% if products.has_next %}
+                            <a
+                                href="?category={{ category }}&organic={{ organic }}&sort={{ sort }}&minPrice={{ min_price }}&maxPrice={{ max_price }}&page={{ page_obj.next_page_number }}"
+                                class="px-4 py-2 rounded-lg border border-zinc-200 text-sm hover:bg-zinc-100 transition"
+                            >
+                                Next
+                            </a>
+                        {% endif %}
+
+                    </div>
+                        
+                </main>
+            </div>
+        </div>
+
+        <!-- Mobile Filters Model -->
+        <div class="hidden" id="mobile-filter">
+            <div class="fixed inset-0 bg-black/40 z-50" id="bg-cl-mobile-filter"/>
+
+            <div id="mobile-filter-bottom" class="fixed bottom-0 left-0 right-0 bg-white z-50 rounded-t-2xl max-h-[80vh] overflow-y-auto animate-slide-in-up">
+                <div class="flex items-center justify-between p-4 border-b border-zinc-400">
+                    <h3 class="text-lg font-semibold text-green-900">Filters</h3>
+                    <button id="cancel-mobile-filter-btn" class="p-2 hover:bg-amber-100 rounded-lg">
+                        <img src="{% static 'icons/cancel.svg' %}" class="size-5">
+                    </button>
+                </div>
+                <div class="bg-white rounded-2xl p-4 sticky top-24 space-y-6">
+                    <div>
+                        <h3 class="text-sm font-semibold text-green-900 mb-3">Categories</h3>
+                        <div class="space-y-1.5">
+                            
+                            {% for cat in categories %}
+                                
+                                {% if cat.slug == category %}
+                                    <a href="{% url 'Products' %}?category={{ cat.slug }}" class="block w-full text-left px-3 py-2 text-sm rounded-md transition-all bg-green-600 text-white">
+                                        {{ cat.name }}
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'Products' %}?category={{ cat.slug }}" class="block w-full text-left px-3 py-3 text-sm rounded-mb transition-all text-zinc-500 hover:bg-amber-100">
+                                        {{ cat.name }}
+                                    </a>
+                                {% endif %}
+                                    
+                            {% endfor %}
+                                
+                        </div>
+                    </div>
+
+                    <!-- Price Range -->
+                    <div>
+                        <h3 class="text-sm font-semibold text-green-900 mb-3">Price Range</h3>
+                        <div class="flex items-center gap-2">
+                            <input type="number" placeholder="Min" name="minPrice" class="w-full px-3 py-2 text-sm bg-white rounded-lg border not-focus:border-zinc-300">
+                            <span class="text-zinc-400">-</span>
+                            <input type="number" placeholder="Max" name="maxPrice" class="w-full px-3 py-2 text-sm bg-white rounded-lg border not-focus:border-zinc-300">
+                        </div>
+                    </div>
+
+                    <!-- Clear all filters -->
+                        <a href="{% url 'Products' %}" >
+                        <button class="w-full py-2 text-sm text-red-400 hover:bg-red-50 rounded-lg transition-colors font-medium cursor-pointer">
+                            Clear All Filters
+                        </button>
+                    </a>
+                    
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+    <script>
+        const mobileFilterBtn = document.getElementById("mobile-filters-btn");
+        const mobileFilter = document.getElementById("mobile-filter");
+        const cancelMobileFilterBtn = document.getElementById("cancel-mobile-filter-btn");
+        const bgClMobileFilter = document.getElementById("bg-cl-mobile-filter");
+        const mobileFilterBottom = document.getElementById("mobile-filter-bottom");
+
+        if(mobileFilterBtn){
+            mobileFilterBtn.addEventListener("click",()=>{
+                mobileFilter.classList.remove('hidden');
+            });
+        }
+        
+        if(cancelMobileFilterBtn){
+            cancelMobileFilterBtn.addEventListener("click", ()=>{
+                mobileFilter.classList.add('hidden');
+            });
+        }
+
+        if(bgClMobileFilter){
+            bgClMobileFilter.addEventListener("click", ()=>{
+                mobileFilter.classList.add('hidden');
+            });
+        }
+    </script>
+{% endblock content %}
+    

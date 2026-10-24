@@ -1,0 +1,125 @@
+{% load static %}
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="icon" href="{% static 'icons/favicon.png' %}">
+    {% tailwind_css %}
+</head>
+<body>
+
+    {% include 'components/Messages.html' %}
+
+    <div class="min-h-screen flex">
+        <!-- Left Side -->
+        <div class="hidden lg:flex lg:w-1/2 bg-green-800 relative items-center justify-center">
+            <img src="{% static 'images/grocery.jpg' %}" alt="" class="absolute inset-0 object-cover h-full bg-center opacity-10">
+            <div class="relative text-center px-12">
+                <h2 class="text-4xl font-semibold text-white mb-4">Welcome back to Instacart</h2>
+                <p class="text-white/60 font-serif text-xl max-w-sm mx-auto">Fresh Groceries and organic produce, delivered to your doorstep.</p>
+            </div>
+        </div>
+        <!-- Right Side -->
+        <div class="flex-1 flex items-center justify-center px-4 py-12 bg-amber-100"> 
+            <div class="w-full max-w-md">
+                <!-- form header message -->
+                <div class="text-center mb-8">
+                    <a href="{% url 'Home' %}" class="inline-flex items-center gap-2 mb-5">
+                        <i data-lucide="bike" class="size-8 text-green-800"></i>
+                        <span class="text-2xl font-semibold text-green-800">Instacart</span>
+                    </a>
+                    <h1 class="text-2xl font-semibold text-green-800 mb-2">
+                        {% if is_login %}
+                            Sign in to your account
+                        {% else %}
+                            Sign up for an account
+                        {% endif %}
+                    </h1>
+                    <p class="text-sm text-gray-500">
+                        {% if is_login %}
+                            Don't have an account? 
+                            <a href="{% url 'Register' %}" class="text-orange-500 ml-1 font-semibold hover:text-orange-600 cursor-pointer">
+                                Create one
+                            </a>
+                        {% else %}
+                            Already have an account?
+                            <a href="{% url 'Login' %}" class="text-orange-500 ml-1 font-semibold hover:text-orange-600 cursor-pointer">
+                                Sign in
+                            </a>
+                        {% endif %}
+                    </p>
+                </div>
+                <!-- login/register form -->
+                <form method="POST" class="space-y-5">
+                    {% csrf_token %}
+                
+                    {% if not is_login %}
+                        <label for="" class="text-sm flex flex-col gap-1">
+                            Username
+                            <div class="relative">
+                                <i data-lucide="users" class="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-500"></i>
+                                <input type="text" name="username" required placeholder="Enter Username (must be unique)" class="w-full pl-11 pr-4 py-3 text-sm bg-white rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
+                            </div>
+                        </label>
+                        <div class="flex flex-col md:flex-row gap-3">
+                            <label for="" class="flex flex-col flex-1 text-sm gap-1">
+                                First Name
+                                <div class="relative">
+                                    <i data-lucide="users" class="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-500"></i>
+                                    <input type="text" name="firstname" required placeholder="Enter Username (must be unique)" class="w-full pl-11 pr-4 py-3 text-sm bg-white rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
+                                </div>
+                            </label>
+                            <label for="" class="flex flex-col flex-1 text-sm gap-1">
+                                Last Name
+                                <div class="relative">
+                                    <i data-lucide="users" class="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-500"></i>
+                                    <input type="text" name="lastname" required placeholder="Enter Username (must be unique)" class="w-full pl-11 pr-4 py-3 text-sm bg-white rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
+                                </div>
+                            </label>
+                        </div>
+                    {% endif %}
+                    <label for="" class="text-sm flex flex-col gap-1">
+                        Email Address
+                        <div class="relative">
+                            <i data-lucide="mail" class="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-500"></i>
+                            <input type="email" name="email" required placeholder="your@example.com" class="w-full pl-11 pr-4 py-3 text-sm bg-white rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
+                        </div>
+                    </label>
+                    <label for="" class="text-sm flex flex-col gap-1">
+                        Password
+                        <div class="relative">
+                            <i data-lucide="lock" class="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-500"></i>
+                            <input type="password" name="password" required placeholder="********" class="w-full pl-11 pr-4 py-3 text-sm bg-white rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
+                        </div>
+                    </label>
+                    <button type="submit" class="items-center justify-center w-full py-3 bg-green-950 text-white font-semibold rounded-xl hover:bg-green-800 transition-colors disabled:opacity-50 cursor-pointer">  
+                        {% if is_login %}
+                            Sign In
+                        {% else %}
+                            Sign Up
+                        {% endif %}        
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% comment %} <script>
+    document.querySelector("form").addEventListener("submit", function () {
+        document.getElementById("btnText").classList.add("hidden");
+        document.getElementById("spinner").classList.remove("hidden");
+
+        document.getElementById("loginBtn").disabled = true;
+    });
+    </script> {% endcomment %}
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

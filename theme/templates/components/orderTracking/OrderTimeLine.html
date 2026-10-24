@@ -1,0 +1,43 @@
+{% load static %}
+
+<section class="bg-white rounded-2xl p-6">
+    <h2 class="text-lg font-semibold text-green-900 mb-6">Delivery Progress</h2>
+    <div class="space-y-0">
+        
+        {% for statusInfo in allStatusInfo %}
+            <div class="flex gap-4">
+                <div class="flex flex-col items-center">
+                    <div class="size-9 rounded-full flex items-center justify-center shrink-0
+                    {% if forloop.counter0 <= currentIdx %}
+                        bg-green-900 text-white
+                    {% else %}
+                        bg-amber-50 text-zinc-400
+                    {% endif %}
+                    {% if forloop.counter0 == currentIdx %}
+                        ring-4 ring-green-900/20
+                    {% endif %}
+                    ">
+                        <i data-lucide="{{ statusInfo.icon }}" class="size-4"></i>
+                    </div>
+                    
+                </div>
+                <div class="pb-6">
+                    <p class="text-sm font-semibold
+                    {% if forloop.counter0 <= currentIdx %}
+                        text-green-900
+                    {% else %}
+                        text-zinc-400
+                    {% endif %}
+                    ">{{ statusInfo.status }}</p>
+
+                    {% if statusInfo.timestamp %}
+                        <p class="text-xs text-zinc-400 mt-0.5">{{ statusInfo.timestamp}}</p>
+                    {% endif %}
+                        
+                        
+                </div>
+            </div>
+        {% endfor %}
+            
+    </div>
+</section>

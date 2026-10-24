@@ -1,0 +1,41 @@
+{% extends 'AppLayout.html' %}
+{% block title %}InstaCart Flash Deals Page{% endblock %}
+{% load static %}
+{% block content %}
+    <section class="min-h-screen bg-amber-50">
+        <!-- Banner -->
+        <div class="bg-linear-to-r from-orange-300 to-orange-500 text-white py-10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="flex items-center justify-center gap-2 mb-3">
+                    <i data-lucide="zap" class="fill-white size-6"></i>
+                    <h1 class="text-3xl font-semibold">Flash Deals</h1>
+                    <i data-lucide="zap" class="fill-white size-6"></i>
+                </div>
+                <p class="text-white/80 max-w-md mx-auto">
+                    Limited-time offers on your favorite organic products. Grab themm before they're gone!
+                </p>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            
+            {% if products|length == 0 %}
+                <div class="text-center py-16">
+                    <img src="{% static 'icons/zap-grey.svg' %}" class="size-16 mx-auto mb-4">
+                    <h2 class="text-lg font-semibold text-green-900 mb-2">No deals right now</h2>
+                    <p class="text-sm text-green-500">Check back soon for amazing offers!</p>
+                </div>
+            {% else %}
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+                    
+                    {% for product in products %}
+                        {% include 'components/ProductCard.html' with product=product %}
+                    {% endfor %}
+                        
+                </div>
+            {% endif %}
+                
+        </div>
+    </section>
+{% endblock content %}
+    

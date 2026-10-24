@@ -1,0 +1,65 @@
+{% extends 'AppLayout.html' %}
+{% block title %}InstaCart Address Page{% endblock %}
+{% load static %}
+
+{% block content %}
+    <div class="min-h-screen bg-amber-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Page Header -->
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-2xl font-semibold text-green-900">My Addresses</h1>
+                <a href="{% url 'Addresses' %}">
+                    <button id="addAddress-form-btn" class="px-4 py-2 bg-green-900 text-white text-sm font-semibold rounded-xl hover:bg-green-600 transition-colors flex items-center gap-2 cursor-pointer">
+                        <i data-lucide="plus" class="size-5"></i>
+                        Add Address
+                    </button>
+                </a>
+            </div>
+
+            <!-- Form Model -->
+            {% include 'components/AddressForm.html' %}
+
+            <!-- Address List -->
+            <div class="space-y-4">
+                
+                {% for add in addresses %}
+                    {% include 'components/AddressCard.html' with address=add %}
+                {% empty %}
+                    <div class="text-center py-16">
+                        <i data-lucide="map-pin" class="size-16 text-zinc-400 mx-auto mb-4"></i>
+                        <h2 class="text-lg font-semibold text-green-900 mb-2">No addresses saved</h2>
+                        <p class="text-sm text-zinc-400">Add an address for faster checkout</p>
+                    </div>
+                {% endfor %}
+                    
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        
+        const addAddressFormBtn = document.getElementById('addAddress-form-btn');
+        const addressForm = document.getElementById('address-form');
+        const addressFormEditBtn = document.querySelectorAll('.address-form-edit-btn');
+
+        if (addAddressFormBtn && addressForm) {
+            addAddressFormBtn.addEventListener('click', () => {
+                addressForm.classList.remove('hidden');
+                sessionStorage.setItem('showAddressForm','true');
+            });
+
+        }
+
+        if (addressFormEditBtn && addressForm) {
+            addressFormEditBtn.forEach(edit => {
+                edit.addEventListener("click", () => {
+                    addressForm.classList.remove('hidden');
+                    sessionStorage.setItem('showAddressForm','true');
+                });
+            });
+        }
+    </script>
+
+{% endblock content %}
+    

@@ -1,0 +1,44 @@
+<form method="post" action="{% url 'Checkout' %}?step=review">
+    {% csrf_token %}
+
+    <div class="bg-white rounded-2xl p-6">
+        <h2 class="text-lg font-semibold text-green-900 mb-5">
+            Payment Method
+        </h2>
+
+        <div class="space-y-3">
+
+            <label class="flex items-center gap-4 p-4 rounded-xl border {% if paymentMethod == 'card' %}border-green-900 bg-amber-100 {% endif %}">
+                <input type="radio" name="payment_method" value="card" {% if paymentMethod == 'card' %}checked{% endif %}>
+
+                <div>
+                    <p class="text-sm font-semibold text-green-900">
+                        Credit / Debit Card
+                    </p>
+                    <p class="text-xs text-zinc-400">
+                        Pay securely with your card
+                    </p>
+                </div>
+            </label>
+
+            <label class="flex items-center gap-4 p-4 rounded-xl border {% if paymentMethod == 'cash' %}border-green-900 bg-amber-100{% endif %}">
+                <input type="radio" name="payment_method" value="cash" {% if paymentMethod == 'cash' %}checked{% endif %}>
+
+                <div>
+                    <p class="text-sm font-semibold text-green-900">
+                        Cash on Delivery
+                    </p>
+                    <p class="text-xs text-zinc-400">
+                        Pay when you receive
+                    </p>
+                </div>
+            </label>
+
+        </div>
+
+        <button type="submit" class="mt-6 px-6 py-3 bg-green-900 text-white rounded-xl cursor-pointer">
+            Review Order
+        </button>
+
+    </div>
+</form>

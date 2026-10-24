@@ -1,0 +1,28 @@
+{% load static %}
+<section id="topBanner" class="bg-linear-to-r from-green-700 via-emerald-800 to-green-700 text-white text-xs sm:text-sm relative overflow-hidden">
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-center gap-6">
+        <div class="flex items-center justify-center gap-2">
+            <img src="{% static 'icons/truck-white.svg' %}" class="w-4 h-4" alt="">
+            <span class="font-medium">
+                Free delivery on orders above $20
+            </span>
+        </div>
+        <span class="hidden sm:inline text-white/40"> | </span>
+        <div class="hidden sm:flex items-center gap-2">
+            <img src="{% static 'icons/lightning.png' %}" alt="" class="size-3.5 shrink-0">
+            <span>Farm-fresh produce delivered daily</span>
+        </div>
+    </div>
+
+    <button id="closeBanner" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full">
+        <img src="{% static 'icons/cancel.svg' %}" class="w-3.5 h-3.5" alt="">
+    </button>
+
+</section>
+
+<script>
+document.getElementById("closeBanner").addEventListener("click", function () {
+    document.getElementById("topBanner").classList.add("hidden");
+});
+</script>

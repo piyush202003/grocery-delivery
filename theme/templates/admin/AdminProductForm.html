@@ -1,0 +1,135 @@
+{% extends 'admin/AdminLayout.html' %}
+{% load static %}
+
+{% block content %}
+<form method="POST" enctype="multipart/form-data" class="p-4">
+
+    {% csrf_token %}
+
+    <div class="bg-white rounded-2xl border border-zinc-200 overflow-hidden">
+
+        <div class="px-6 py-5 border-b border-zinc-400 flex items-center gap-4">
+            <a href="{% url 'AdminProducts' %}"
+               class="p-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-500 transition-colors">
+                <i data-lucide="arrow-left" class="size-5"></i>
+            </a>
+            <h2 class="text-xl font-semibold text-zinc-900">
+                {% if isEdit %}
+                    Edit Product
+                {% else %}
+                    New Product
+                {% endif %}
+            </h2>
+        </div>
+
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-2">Name</label>
+                    {{ form.name }}
+                    {{ form.name.errors }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-2">Category</label>
+                    {{ form.category }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-2">Original Price ($)</label>
+                    {{ form.original_price }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-2">Discount (%)</label>
+                    {{ form.discount }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-2">Unit</label>
+                    {{ form.unit }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-2">Stock</label>
+                    {{ form.stock }}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-zinc-700 mb-2">Image</label>
+                    <div class="flex items-center gap-4">
+                        {% if product.image %}
+                            <div class="size-16 rounded-lg overflow-hidden border border-zinc-200 shrink-0 bg-amber-100">
+                                <img
+                                    id="preview"
+                                    src="{{ product.image.url }}"
+                                    alt="Product Preview"
+                                    class="w-full h-full object-cover">
+                            </div>
+                        {% else %}
+                            <div
+                                id="preview-box"
+                                class="hidden size-16 rounded-lg overflow-hidden border border-zinc-200 shrink-0 bg-amber-100">
+                                <img
+                                    id="preview"
+                                    class="w-full h-full object-cover">
+                            </div>
+                        {% endif %}
+                        
+                        {{ form.image }}
+                    </div>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-zinc-700 mb-2">Description</label>
+                    {{ form.description }}
+                </div>
+
+                <div class="flex items-center gap-3">
+                    {{ form.is_organic }}
+                    <label for="{{ form.is_organic.id_for_label }}" class="block text-sm font-medium text-zinc-700 mb-2">Organic</label>
+                </div>
+
+            </div>
+
+            <div class="mt-8 pt-6 border-t flex justify-end">
+                <button class="px-6 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
+                    {% if isEdit %}
+                        Update Product
+                    {% else %}
+                        Save Product
+                    {% endif %}
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+</form>
+
+<script>
+
+const input = document.getElementById("id_image");
+
+const preview = document.getElementById("preview");
+
+const box = document.getElementById("preview-box");
+
+input.addEventListener("change", function () {
+
+    if (this.files.length) {
+
+        preview.src = URL.createObjectURL(this.files[0]);
+
+        if (box) {
+            box.classList.remove("hidden");
+        }
+
+    }
+
+});
+
+</script>
+{% endblock content %}
+    

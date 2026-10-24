@@ -1,0 +1,177 @@
+{% extends 'AppLayout.html' %}
+{% block title %}InstaCart Product Page{% endblock %}
+{% load static %}
+
+{% block content %}
+    <div class="min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <!-- Bread Crumb -->
+            <nav class="flex items-center gap-2 text-sm text-zinc-400 mb-6">
+                <a href="{% url 'Home' %}" class="hover:text-green-900 transition-colors">
+                    <i data-lucide="home" class="size-4"></i>
+                </a>
+                <span>/</span>
+                <a href="{% url 'Products' %}" class="hover:text-green-900 transition-colors">
+                    Products
+                </a>
+                <span>/</span>
+                <a href="{% url 'Products' %}?category={{ product.category.slug }}" class="hover:text-green-900 transition-colors">
+                    {{ product.category.name|upper|title }}
+                </a>
+                <span>/</span>
+                <span class="text-green-900 font-medium truncate max-w-[200px]">{{ product.name }}</span>
+            </nav>
+
+            <!-- Back Button -->
+            <button onclick="history.back()" class="mb-6 flex items-center gap-1.5 text-sm text-gray-400 hover:text-green-900 transition-colors">
+                <i data-lucide="arrow-left" class="size-4"></i> Back
+            </button>
+
+            <!-- Product Details -->
+            <div class="bg-white/50 rounded-2xl overflow-hidden">
+                <div class="grid md:grid-cols-2 gap-0">
+                    <!-- Left Side -->
+                    <div class="relative flex items-center justify-center p-8 md:p-12 min-h-[320px] md:min-h-[480px]">
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="max-h-[360px] w-auto object-contain">
+                    
+                        <!-- Badges -->
+                        <div class="absolute top-5 left-5 flex flex-wrap gap-1.5">
+                            
+                            {% if product.is_organic %}
+                                <span class="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold bg-green-900 text-white rounded-full">
+                                    <i data-lucide="leaf" class="w-3 h-3"></i> Organic
+                                </span>
+                            {% endif %}
+                            
+                            {% if product.discount > 0 %}
+                                <span class="px-2.5 py-1 text-xs font-semibold bg-orange-400 text-white rounded-full">
+                                    {{ product.discount }}% OFF
+                                </span>
+                            {% endif %}
+                                
+                                
+                        </div>
+                    </div>
+
+                    
+
+                    <!-- Right Side -->
+                    <div class="p-6 md:p-10 flex flex-col justify-center">
+                        <span class="text-xs font-medium text-zinc-400 tracking-wider mb-3 capitalize">{{ product.category.name|upper|title }}</span>
+                        <h1 class="text-2xl md:text-3xl font-semibold text-green-900 mb-3">{{ product.name }}</h1>
+                        
+                        <!-- Ratings -->
+                        
+                        {% if product.rating > 0 %}
+                            <div class="flex items-center gap-2 mb-5">
+                                <div class="flex items-center gap-0.5">
+                                    
+                                    {% for star in "12345" %}
+                                        {% if forloop.counter <= product.rating %}
+                                            <span class="text-yellow-400">★</span>
+                                        {% else %}
+                                            <span class="text-zinc-300">★</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                        
+                                </div>
+                                <span class="text-sm font-medium">{{ product.rating }}</span>
+                                <span class="text-sm text-zinc-400">({{ product.reviewCount }} reviews)</span>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Price -->
+                        <div class="flex items-baseline gap-3 mb-5">
+                            <span class="text-3xl md:text-4xl font-semibold text-green-900">$ {{ product.price }}</span>
+                            
+                            {% if product.original_price > product.price %}
+                                <span class="text-lg text-zinc-400 line-through">$ {{ product.original_price }}</span>
+                            {% endif %}
+                                
+                        </div>
+
+                        <!-- Description -->
+                        <p class="text-sm text-zinc-400 leading-relaxed mb-6">{{ product.description }}</p>
+                        
+                        <!-- Stock -->
+                        <div class="mb-6">
+                            
+                            {% if product.stock > 0 %}
+                                <span class="text-sm text-green-500 font-medium">In Stock ({{ product.stock }} available)</span>
+                            {% else %}
+                                <span class="text-sm text-red-500 font-medium">Out of Stock</span>
+                            {% endif %}
+
+                        </div>
+
+                        <!-- Quantity + add to cart -->
+                        {% if inCart %}
+                            <div class="grid grid-cols-2 gap-3">
+                                <!-- Quantity Control -->
+                                <form action="{% url 'UpdateCart' product.id %}" method="post" class="flex items-center justify-between overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+                                    {% csrf_token %}
+
+                                    <button type="submit" name="action" value="decrease" class="flex size-12 items-center justify-center text-zinc-600 transition-colors hover:bg-amber-50 hover:text-amber-700 active:scale-95 cursor-pointer">
+                                        <i data-lucide="minus" class="size-4"></i>
+                                    </button>
+
+                                    <span class="min-w-8 text-center text-sm font-semibold text-zinc-800">
+                                        {{ displayQuantity }}
+                                    </span>
+
+                                    <button type="submit" name="action" value="increase" class="flex size-12 items-center justify-center text-zinc-600 transition-colors hover:bg-amber-50 hover:text-amber-700 active:scale-95 cursor-pointer">
+                                        <i data-lucide="plus" class="size-4"></i>
+                                    </button>
+
+                                </form>
+
+                                <!-- Cart Status -->
+                                <div class="flex items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 px-3 text-sm font-semibold text-green-800">
+                                    <i data-lucide="circle-check" class="size-4"></i>
+                                    <span>In Cart</span>
+                                </div>
+
+                            </div>
+                        {% else %}
+                            <a href="{% url 'AddToCart' product.id %}" class="" {% if product.stock <= 0 %}disabled{% endif %}>
+                                <button class="w-full py-3 font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] bg-orange-400 text-white hover:bg-orange-600">
+                                    <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                                    Add To Cart 
+                                </button>
+                            </a>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+            
+            <!-- Cutomer Reviews -->
+            {% include 'components/Review.html' %}
+
+            <!-- Related Products -->
+            
+            <section class="mt-12 mb-44">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-semibold text-green-900">Related Products</h2>
+                        <p class="text-sm text-zinc-300 mt-1">More from {{ product.category.name|upper|title }}</p>
+                    </div>
+                    <a href="{% url 'Products' %}?category={{ product.category.slug }}" class="text-sm font-semibold text-orange-400 hover:text-orange-600 flex items-center gap-1 transition-colors">
+                        View All
+                        <i data-lucide="arrow-right" class="size-4"></i>
+                    </a>
+                </div>
+                <div class="grid grid-clos-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 xl:gap-8">
+                    {% for rp in relatedProducts %}
+                        {% include 'components/ProductCard.html' with product=rp %}
+                    {% endfor %}
+                </div>
+                    
+                
+            </section>
+                
+            
+        </div>
+    </div>
+{% endblock content %}
+    
