@@ -182,3 +182,20 @@
         cartSidebarRight.classList.add('animate-slide-in-right');
     }
 </script>
+
+<script>
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function () {
+            sessionStorage.setItem('scrollPosition', window.scrollY);
+        });
+    });
+
+    window.addEventListener('load', function () {
+        const position = sessionStorage.getItem('scrollPosition');
+
+        if (position !== null) {
+            window.scrollTo(0, Number(position));
+            sessionStorage.removeItem('scrollPosition');
+        }
+    });
+</script>

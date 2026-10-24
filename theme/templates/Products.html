@@ -58,7 +58,8 @@
                             <div>
                                 <h3 class="text-sm font-semibold text-green-900 mb-3">Price Range</h3>
                                 <div class="flex items-center gap-2">
-                                     <span class="text-zinc-400">-</span>
+                                    <input type="number" name="minPrice" value="{{ minPrice }}" placeholder="Min" min="0" class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-zinc-300 focus:border-green-900 outline-none">
+                                    <span class="text-zinc-400">-</span>
                                     <input type="number" name="maxPrice" value="{{ maxPrice }}" placeholder="Max" min="0" class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-zinc-300 focus:border-green-900 outline-none">
                                 </div>
 
