@@ -1,0 +1,103 @@
+{% load static %}
+
+<h2>Reviews for {{ product.name }}</h2>
+
+<div class="rating-summary">
+    {% if rating_summary.total %}
+        <h3>
+            {{ rating_summary.average|floatformat:1 }} / 5 ★
+        </h3>
+        <p>{{ rating_summary.total }} review{{ rating_summary.total|pluralize }}</p>
+    {% else %}
+        <p>No reviews yet. Be the first to review this product!</p>
+    {% endif %}
+</div>
+
+{% if user.is_authenticated %}
+    {% if user_review %}
+        <p>You have reviewed this product.</p>
+        <a href="{% url 'reviews:edit' user_review.id %}">
+            Edit your review
+        </a>
+    {% else %}
+        <a href="{% url 'reviews:create' product.id %}">
+            Write a review
+        </a>
+    {% endif %}
+{% else %}
+    <p>
+        <a href="{% url 'login' %}?next={{ request.path|urlencode }}">
+            Log in
+        </a>
+        to write a review.
+    </p>
+{% endif %}
+
+<hr>
+
+{% for review in reviews %}
+    <article class="review-card">
+        <h3>
+            {{ review.user.get_full_name|default:review.user.username }}
+        </h3>
+
+        <p>
+            {% for star in "12345" %}
+                {% if forloop.counter <= review.rating %}
+                    ★
+                {% else %}
+                    ☆
+                {% endif %}
+            {% endfor %}
+        </p>
+
+        {% if review.title %}
+            <h4>{{ review.title }}</h4>
+        {% endif %}
+
+        <p>{{ review.comment|linebreaksbr }}</p>
+
+        <small>
+            Posted {{ review.created_at|date:"M d, Y" }}
+            {% if review.updated_at > review.created_at %}
+                (edited)
+            {% endif %}
+        </small>
+
+        <p>
+            {{ review.helpful_count }} people found this helpful.
+        </p>
+
+        {% if user.is_authenticated %}
+            {% if user.id != review.user_id %}
+                <form method="POST"
+                      action="{% url 'reviews:helpful' review.id %}">
+                    {% csrf_token %}
+                    <button type="submit">
+                        {% if review.id in voted_review_ids %}
+                            Remove helpful vote
+                        {% else %}
+                            Helpful
+                        {% endif %}
+                    </button>
+                </form>
+            {% endif %}
+        {% endif %}
+
+        {% if user.id == review.user_id %}
+            <p>
+                <a href="{% url 'reviews:edit' review.id %}">Edit</a>
+            </p>
+
+            <form method="POST"
+                  action="{% url 'reviews:delete' review.id %}"
+                  onsubmit="return confirm('Delete this review?');">
+                {% csrf_token %}
+                <button type="submit">Delete</button>
+            </form>
+        {% endif %}
+    </article>
+    <hr>
+{% empty %}
+    <p>No reviews have been submitted yet.</p>
+{% endfor %}

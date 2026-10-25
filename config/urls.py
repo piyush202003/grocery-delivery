@@ -10,6 +10,7 @@ urlpatterns = [
     path("",include("FeaturesApp.urls")),
     path('admin/', include('AdminPanal.urls')),
     path('delivery/', include('DeliveryPartner.urls')),
+    path('reviews/', include('reviews.urls')),
 ]
 
 if settings.DEBUG:

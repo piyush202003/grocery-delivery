@@ -1,0 +1,32 @@
+
+<h2>{{ page_title }}: {{ product.name }}</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    {{ form.non_field_errors }}
+
+    <div>
+        <label for="{{ form.rating.id_for_label }}">Rating</label>
+        {{ form.rating }}
+        {{ form.rating.errors }}
+    </div>
+
+    <div>
+        <label for="{{ form.title.id_for_label }}">Title</label>
+        {{ form.title }}
+        {{ form.title.errors }}
+    </div>
+
+    <div>
+        <label for="{{ form.comment.id_for_label }}">Your review</label>
+        {{ form.comment }}
+        {{ form.comment.errors }}
+    </div>
+
+    <button type="submit">Save review</button>
+
+    <a href="{% url 'reviews:product' product.id %}">
+        Cancel
+    </a>
+</form>

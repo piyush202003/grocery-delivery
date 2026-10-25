@@ -1,3 +1,18 @@
 from django.contrib import admin
+from .models import Review, HelpfulVote
 
-# Register your models here.
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = (
+        "product", "user", "rating", "created_at"
+    )
+    list_filter = ("rating", "created_at")
+    search_fields = (
+        "product__name", "user__username", "comment"
+    )
+
+
+@admin.register(HelpfulVote)
+class HelpfulVoteAdmin(admin.ModelAdmin):
+    list_display = ("review", "user", "created_at")
