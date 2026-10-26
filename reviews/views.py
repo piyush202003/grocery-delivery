@@ -13,7 +13,7 @@ def product_reviews(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
 
     reviews = (
-        Review.objects.filter(product=product)s
+        Review.objects.filter(product=product)
         .select_related("user")
         .annotate(helpful_count=Count("helpful_votes"))
         .order_by("-created_at")

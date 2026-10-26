@@ -172,7 +172,6 @@ def clear_cart(request):
     return redirect(request.META.get("HTTP_REFERER", "Home"))
 
 
-
 def Products(request):
     clear_all_filters = request.GET.get('clearAllFilters', 0)
 
