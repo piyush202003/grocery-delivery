@@ -1,6 +1,4 @@
 from django.contrib import admin
-from matplotlib.pyplot import cla
-
 from .models import CartItem, DeliveryPartner, Order, OrderItem, OrderStatus, Product, Category
 
 # Register your models here.
