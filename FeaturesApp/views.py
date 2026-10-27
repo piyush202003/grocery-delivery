@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.db.models import Q
+from django.db.models.aggregates import Avg, Count
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.contrib import messages
@@ -9,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from FeaturesApp.forms import AddressForm
 from accounts.models import Address
 
-from .dummyData import dummyProducts, dummyCategoriesData, generate_dummy_reviews, get_rating_breakdown, dummyDashboardOrdersData, statusColors, dummyAddressData
+from .dummyData import generate_dummy_reviews, get_rating_breakdown, statusColors
 from .models import CartItem, Category, Order, OrderItem, OrderStatus, Product
 
 # Create your views here.
@@ -17,7 +18,10 @@ def Home(request):
 
     categories = Category.objects.all().order_by('slug')
 
-    popularProducts = Product.objects.all().order_by('-rating')[:10]
+    popularProducts = Product.objects.annotate(
+        average_rating=Avg('reviews__rating'),
+        total_reviews=Count('reviews__id')
+    ).order_by('-average_rating')[:10]
 
     context = {
         "categoriesData" : categories,
@@ -188,7 +192,10 @@ def Products(request):
     min_price = request.GET.get("minPrice", request.session.get('productsMin_price', ''))
     max_price = request.GET.get("maxPrice", request.session.get('productsMax_price', ''))
 
-    products_data = Product.objects.all()
+    products_data = Product.objects.annotate(
+        average_rating=Avg('reviews__rating'),
+        total_reviews=Count('reviews__id')
+    )
     categories = Category.objects.all()
 
     if category:
@@ -239,13 +246,20 @@ def Products(request):
     return render(request, "Products.html", context=context)
 
 def ProductPage(request,pdid):
-    product = get_object_or_404(Product, id=pdid)
+    product = get_object_or_404(
+        Product.objects.annotate(
+            average_rating=Avg('reviews__rating'),
+            total_reviews=Count('reviews__id')
+        ), id=pdid)
 
     if not product:
         messages.error(request, f"Product with Product Id = {pdid} is not present in data base")
         return redirect(request.META.get("HTTP_REFERER", "Products"))
     
-    relatedProducts = Product.objects.filter(category=product.category).exclude(id=pdid)[:8]
+    relatedProducts = Product.objects.filter(category=product.category).annotate(
+        average_rating=Avg('reviews__rating'),
+        total_reviews=Count('reviews__id')
+    ).exclude(id=pdid)[:8]
 
     cartData = request.session.get("cart",{})
     # product_id = str(product.id)
@@ -277,6 +291,9 @@ def SearchResults(request):
     resultProducts = Product.objects.filter(
         Q(name__icontains=search) |
         Q(description__icontains=search)
+    ).annotate(
+        average_rating=Avg('reviews__rating'),
+        total_reviews=Count('reviews__id')
     )
 
     context = {
@@ -289,7 +306,10 @@ def SearchResults(request):
 def FlashDeals(request):
     cartData = cart(request)
     
-    products = Product.objects.filter( stock__gt= 0, discount__gt=0).order_by('-discount')[:10]
+    products = Product.objects.filter( stock__gt= 0, discount__gt=0).annotate(
+        average_rating=Avg('reviews__rating'),
+        total_reviews=Count('reviews__id')
+    ).order_by('-discount')[:10]
 
     context={
         'cart':cartData,

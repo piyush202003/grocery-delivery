@@ -62,12 +62,12 @@
                         
                         <!-- Ratings -->
                         
-                        {% if product.rating > 0 %}
+                        {% if product.average_rating > 0 %}
                             <div class="flex items-center gap-2 mb-5">
                                 <div class="flex items-center gap-0.5">
                                     
                                     {% for star in "12345" %}
-                                        {% if forloop.counter <= product.rating %}
+                                        {% if forloop.counter <= product.average_rating %}
                                             <span class="text-yellow-400">★</span>
                                         {% else %}
                                             <span class="text-zinc-300">★</span>
@@ -75,8 +75,8 @@
                                     {% endfor %}
                                         
                                 </div>
-                                <span class="text-sm font-medium">{{ product.rating }}</span>
-                                <span class="text-sm text-zinc-400">({{ product.reviewCount }} reviews)</span>
+                                <span class="text-sm font-medium">{{ product.average_rating|default:0|floatformat:1 }}</span>
+                                <span class="text-sm text-zinc-400">({{ product.total_reviews }} reviews)</span>
                             </div>
                         {% endif %}
                         

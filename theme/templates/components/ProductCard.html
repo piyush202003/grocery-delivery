@@ -26,12 +26,12 @@
             <div class="p-3.5 text-zinc-700">
                 <h3 class="text-sm leading-snug mb-1.5 line-clamp-2">{{ product.name }}</h3>
                 
-                {% if product.rating > 0 %}
+                {% if product.average_rating > 0 %}
                     <div class="flex items-center gap-1 mb-2">
                         <!-- <img src="{% static 'icons/star.svg' %}" class="size-4"> -->
                         <i data-lucide="star" class="fill-yellow-200 size-4"></i>
-                        <span class="text-xs font-medium text-zinc-600">{{ product.rating }}</span>
-                        <span class="text-xs text-zinc-400">({{ product.review_count }})</span>
+                        <span class="text-xs font-medium text-zinc-600">{{ product.average_rating|default:0|floatformat:1 }}</span>
+                        <span class="text-xs text-zinc-400">({{ product.total_reviews|default:0 }})</span>
                     </div>
                 {% endif %}
                 
