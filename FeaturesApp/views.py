@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 
 from django.db.models import Q
@@ -6,11 +7,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 
 from FeaturesApp.forms import AddressForm
 from accounts.models import Address
+from reviews.models import Review
 
-from .dummyData import generate_dummy_reviews, get_rating_breakdown, statusColors
+from .dummyData import statusColors
 from .models import CartItem, Category, Order, OrderItem, OrderStatus, Product
 
 # Create your views here.
@@ -245,7 +248,15 @@ def Products(request):
     }
     return render(request, "Products.html", context=context)
 
-def ProductPage(request,pdid):
+def get_rating_breakdown(ratings):
+    counts = [0, 0, 0, 0, 0]
+
+    for rating in ratings:
+        counts[rating - 1] += 1
+
+    return counts[::-1]
+
+def ProductPage(request,pdid,review_id=None):
     product = get_object_or_404(
         Product.objects.annotate(
             average_rating=Avg('reviews__rating'),
@@ -262,13 +273,22 @@ def ProductPage(request,pdid):
     ).exclude(id=pdid)[:8]
 
     cartData = request.session.get("cart",{})
-    # product_id = str(product.id)
     displayQuantity = cartData.get(str(pdid), 0)
     inCart = str(pdid) in cartData
     
 
-    reviews = generate_dummy_reviews(product)
-    breakdown = get_rating_breakdown(reviews)
+    # reviews = generate_dummy_reviews(product)
+    reviews = (
+        Review.objects.filter(product=product)
+        .select_related("user")
+        .annotate(helpful_count=Count("helpful_votes"))
+        .order_by("-created_at")
+    )
+    breakdown = get_rating_breakdown(reviews.values_list("rating", flat=True))
+    now = timezone.now()
+
+    for review in reviews:
+        review.is_recent = review.created_at >= now - timedelta(days=7)
 
     context={
         'pdid': pdid,

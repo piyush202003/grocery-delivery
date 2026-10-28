@@ -10,7 +10,7 @@ def admin_required(view_func):
         if not request.user.is_authenticated:
             return redirect("Login")
 
-        if not request.user.is_admin:
+        if not request.user.is_admin and     not request.user.is_staff:
             messages.error(request, "You are not authorized to access the admin panel.")
             return redirect("Home")
 

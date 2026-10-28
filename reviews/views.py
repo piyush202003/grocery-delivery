@@ -152,7 +152,7 @@ def toggle_helpful(request, review_id):
 
     if review.user_id == request.user.id:
         messages.info(request, "You cannot vote on your own review.")
-        return redirect("reviews:product", product_id=review.product_id)
+        return redirect("ProductPage", pdid=review.product_id)
 
     vote, created = HelpfulVote.objects.get_or_create(
         review=review,
@@ -165,4 +165,4 @@ def toggle_helpful(request, review_id):
     else:
         messages.success(request, "Marked as helpful.")
 
-    return redirect("reviews:product", product_id=review.product_id)
+    return redirect("ProductPage", pdid=review.product_id)
