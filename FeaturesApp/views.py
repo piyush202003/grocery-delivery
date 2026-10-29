@@ -10,8 +10,9 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 
 from FeaturesApp.forms import AddressForm
+from FeaturesApp.other_functions import get_rating_breakdown
 from accounts.models import Address
-from reviews.models import Review
+from reviews.models import HelpfulVote, Review
 
 from .dummyData import statusColors
 from .models import CartItem, Category, Order, OrderItem, OrderStatus, Product
@@ -248,14 +249,6 @@ def Products(request):
     }
     return render(request, "Products.html", context=context)
 
-def get_rating_breakdown(ratings):
-    counts = [0, 0, 0, 0, 0]
-
-    for rating in ratings:
-        counts[rating - 1] += 1
-
-    return counts[::-1]
-
 def ProductPage(request,pdid,review_id=None):
     product = get_object_or_404(
         Product.objects.annotate(
@@ -290,6 +283,21 @@ def ProductPage(request,pdid,review_id=None):
     for review in reviews:
         review.is_recent = review.created_at >= now - timedelta(days=7)
 
+    user_review = None
+    voted_review_ids=set()
+    if(request.user.is_authenticated):
+        user_review = Review.objects.filter(product=product, user=request.user).first()
+        voted_review_ids = set(
+            HelpfulVote.objects.filter(
+                user=request.user,review__product=product
+            ).values_list('review_id', flat=True)
+        )
+
+    # create review
+    create_review = request.GET.get('create_review','')
+
+    # Edit review
+
     context={
         'pdid': pdid,
         'product':product,
@@ -300,6 +308,8 @@ def ProductPage(request,pdid,review_id=None):
         'reviews':reviews,
         'breakdown':breakdown,
         'maxRatingCount':max(breakdown),
+        'user_review':user_review,
+        'voted_review_ids':voted_review_ids,
     }
     return render(request, "ProductPage.html", context=context)
 
