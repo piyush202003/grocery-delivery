@@ -47,7 +47,7 @@ def register_view(request):
             messages.warning(request, f'Account with Email ID {email} already exists.')
             return render('Register')
 
-        User.objects.create_user(
+        user = User.objects.create_user(
             username = username,
             first_name = first_name,
             last_name = last_name,
@@ -55,9 +55,9 @@ def register_view(request):
             password = password,
             is_admin = email in settings.ADMIN_MAILS
         )
-
         messages.success(request, f"New account has been created with Email ID {email}")
-        return redirect('Login')
+        login(request, user)
+        return redirect('Home')
 
     context = {
         "is_login" : False,

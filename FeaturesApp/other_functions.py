@@ -75,7 +75,8 @@ def edit_review(request, review_id):
         form = ReviewForm(instance=review)
 
     context = {
-        'form':form
+        'form':form,
+        'review_id':review_id
     }
     return context
 

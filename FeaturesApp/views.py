@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 
 from FeaturesApp.forms import AddressForm
-from FeaturesApp.other_functions import get_rating_breakdown
+from FeaturesApp.other_functions import create_review, edit_review, get_rating_breakdown
 from accounts.models import Address
 from reviews.models import HelpfulVote, Review
 
@@ -293,10 +293,17 @@ def ProductPage(request,pdid,review_id=None):
             ).values_list('review_id', flat=True)
         )
 
+    data = None
     # create review
-    create_review = request.GET.get('create_review','')
+    cre_review = request.GET.get('create_review','')
+    if cre_review:
+        data = create_review(request, product_id=pdid)
 
     # Edit review
+    ed_review = request.GET.get('edit_review', '')
+    revId = request.GET.get('edit_review_id', 0)
+    if ed_review:
+        data = edit_review(request, review_id=int(revId))
 
     context={
         'pdid': pdid,
@@ -310,6 +317,7 @@ def ProductPage(request,pdid,review_id=None):
         'maxRatingCount':max(breakdown),
         'user_review':user_review,
         'voted_review_ids':voted_review_ids,
+        'data':data
     }
     return render(request, "ProductPage.html", context=context)
 

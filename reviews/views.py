@@ -59,7 +59,7 @@ def product_reviews(request, product_id):
     })
 
 
-@login_required
+@login_required(login_url='Login')
 def create_review(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
 
@@ -106,7 +106,7 @@ def create_review(request, product_id):
     })
 
 
-@login_required
+@login_required(login_url='Login')
 def edit_review(request, review_id):
     review = get_object_or_404(
         Review, pk=review_id, user=request.user
@@ -132,7 +132,7 @@ def edit_review(request, review_id):
     })
 
 
-@login_required
+@login_required(login_url='Login')
 @require_POST
 def delete_review(request, review_id):
     review = get_object_or_404(
@@ -145,7 +145,7 @@ def delete_review(request, review_id):
     return redirect("reviews:product", product_id=product_id)
 
 
-@login_required
+@login_required(login_url='Login')
 @require_POST
 def toggle_helpful(request, review_id):
     review = get_object_or_404(Review, pk=review_id)

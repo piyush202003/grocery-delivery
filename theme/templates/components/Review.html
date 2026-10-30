@@ -45,9 +45,60 @@
 
         </div>
 
+
         <!-- Individual reviews -->
         <div id="reviews-container" class="space-y-6">
-
+            
+            <div class='flex gap-4'>
+                {% if user.is_authenticated %}
+                    
+                    {% if user_review %}
+                        <div class='min-w-full flex items-center justify-between'>
+                            <p>You have reviewed this product.</p>
+                            <div class='flex items-center gap-4'>
+                                <button
+                                    type="button"
+                                    id="edit-review-form"
+                                    class="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-green-900 border border-green-900 rounded-xl hover:bg-green-900 hover:text-white transition-colors cursor-pointer"
+                                >
+                                    <i data-lucide='pencil' class='size-4'></i>
+                                    Edit your review
+                                </button>
+                                <form method="POST"
+                                    action="{% url 'reviews:delete' user_review.id %}"
+                                    onsubmit="return confirm('Are your sure? Your want to delete your review!');">
+                                    {% csrf_token %}
+                                    <button
+                                        type="submit"
+                                        id="edit-review-form"
+                                        class="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-red-900 border border-red-900 rounded-xl hover:bg-red-900 hover:text-white transition-colors cursor-pointer"
+                                    >
+                                        <i data-lucide='trash-2' class='size-4'></i>
+                                        Delete your review
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class='min-w-full flex items-center justify-center'>
+                            <button
+                                type="button"
+                                id="create-review-form"
+                                class="px-5 py-2.5 text-sm font-medium text-green-900 border border-green-900 rounded-xl hover:bg-green-900 hover:text-white transition-colors cursor-pointer"
+                            >
+                                Write a review
+                            </button>
+                        </div>
+                    {% endif %}
+                        
+                {% else %}
+                    <p class='text-zinc-600 text-sm text-medium'>
+                        <a href="{% url 'Login' %}?next={{ request.path|urlencode }}" class='text-green-600 text-semibold'>Log in </a>to write a reivew
+                    </p>
+                {% endif %}
+            </div>
+                
+            <hr>
             {% for review in reviews %}
 
                 <div
@@ -108,7 +159,9 @@
 
                         </div>
 
-
+                        <h5 class="text-lg leading-relaxed">
+                            {{ review.title }}
+                        </h5>
                         <!-- Comment -->
                         <p class="text-sm text-zinc-600 leading-relaxed">
                             {{ review.comment }}
@@ -116,18 +169,36 @@
 
 
                         <!-- Helpful -->
-                        <button
-                            type="button"
-                            class="mt-2 flex items-center gap-1.5 text-xs text-zinc-600 hover:text-green-900 transition-colors"
-                        >
-                            <i data-lucide="thumbs-up" class="size-3.5"></i>
-                            Helpful ({{ review.helpful_count }})
-                        </button>
+                        <form method="POST"
+                            action="{% url 'reviews:helpful' review.id %}">
+                            {% csrf_token %}
+                            <button
+                                type="submit"
+                                class="mt-2 flex items-center gap-1.5 text-xs text-zinc-600 hover:text-green-900 transition-colors cursor-pointer"
+                            >
+                                {% if review.id in voted_review_ids %}
+                                    <i data-lucide="thumbs-up" class="size-4 fill-green-800 text-white"></i>
+                                {% else %}
+                                    <i data-lucide="thumbs-up" class="size-4"></i>
+                                {% endif %}
+                                Helpful ({{ review.helpful_count }})
+                                
+                            </button>
+                        </form>
 
                     </div>
 
                 </div>
-
+            {% empty %}
+                <div class="flex flex-col items-center justify-center text-zinc-400">
+                    <i data-lucide="message-square" class="size-12 mb-3"></i>
+                    <h3 class="text-lg font-semibold text-zinc-700">
+                        No Reviews Yet
+                    </h3>
+                    <p class="text-sm">
+                        Be the first to share your experience!
+                    </p>
+                </div>
             {% endfor %}
 
         </div>
@@ -142,16 +213,6 @@
                     class="px-5 py-2.5 text-sm font-medium text-green-900 border border-green-900 rounded-xl hover:bg-green-900 hover:text-white transition-colors cursor-pointer"
                 >
                     Show More Reviews
-                </button>
-            {% endif %}
-                
-            {% if user.is_authenticated %}
-                <button
-                    id="open-review-form"
-                    type="button"
-                    class="px-5 py-2.5 text-sm font-medium text-green-900 border border-green-900 rounded-xl hover:bg-green-900 hover:text-white transition-colors cursor-pointer"
-                >
-                    Rate this project
                 </button>
             {% endif %}
         </div>
@@ -191,20 +252,22 @@
 
 <section class="hidden" id="review">
     <!-- Overlay -->
-    <div id="review-cln-bg" class="fixed inset-0 bg-black/40 z-50"></div>
+    <div id="review-cln-bg" class="fixed inset-0 bg-black/40 z-[50]"></div>
 
     <!-- form container -->
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <form method="POST" id='review-form'
-            action="{% if isEdit %}{% url 'AddressEdit' address.id %}{% else %}{% url 'Addresses' %}{% endif %}" 
-            class="bg-white rounded-2xl p-6 w-full max-w-lg animate-fade-in">
+    <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+        <form 
+            method="POST" 
+            id='review-form'
+            action="{% url 'ProductPage' product.id %}"
+            class="bg-white rounded-2xl p-6 w-full max-w-lg animate-fade-in pointer-events-auto">
             {% csrf_token %}
 
             <!-- Form header -->
             <div class="flex items-center justify-between mb-5">
                 <h2 class="text-lg font-semibold text-green-900">
                     
-                    {% if isEdit %}
+                    {% if data.review_id %}
                         Edit your review:
                     {% else %}
                         Write a review:
@@ -216,47 +279,33 @@
                 </button>
             </div>
 
+            {{ data.form.non_field_errors }}
             <!-- Form Input Fields -->
             <div class="space-y-4">
+
+                <div>
+                    <label for="{{ form.rating.id_for_label }}" class="block text-sm font-medium text-shadow-green-900 mb-1.5">Rating</label>
+                    {{ data.form.rating }}
+                    {{ data.form.rating.errors }}
+                </div>
+
                 <div>
                     <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-shadow-green-900 mb-1.5">Title</label>
-                    {{ form.title }}
+                    {{ data.form.title }}
+                    {{ data.for.title.error }}
                 </div>
 
                 <div>
-                    <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-shadow-green-900 mb-1.5">Street Address</label>
-                    {{ form.address }}
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label for="{{ form.city.id_for_label }}" class="block text-sm font-medium text-shadow-green-900 mb-1.5">City</label>
-                        {{ form.city }}
-                    </div>
-                    <div >
-                        <label for="{{ form.state.id_for_label }}" class="block text-sm font-medium text-shadow-green-900 mb-1.5">State</label>
-                        {{ form.state }}
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label for="{{ form.zip.id_for_label }}" class="block text-sm font-medium text-shadow-green-900 mb-1.5">Zip Code</label>
-                        {{ form.zip }}
-                    </div>
-                    <div class="flex items-end pb-1" >
-                        <label for="{{ form.is_default.id_for_label }}" class="flex items-center gap-2">
-                            {{ form.is_default }}
-                            <span class="text-sm text-zinc-400">Set as default</span>
-                        </label>
-                    </div>
+                    <label for="{{ form.comment.id_for_label }}" class="block text-sm font-medium text-shadow-green-900 mb-1.5">Comment</label>
+                    {{ data.form.comment }}
+                    {{ data.form.comment.errors }}
                 </div>
 
             </div> 
 
             <button type="submit" class="mt-6 w-full py-3 bg-green-900 text-white font-semibold rounded-xl hover:bg-green-600 transition-colors cursor-pointer">
                 
-                {% if isEdit %}
+                {% if data.review_id %}
                     Update Review
                 {% else %}
                     Add Review
@@ -270,28 +319,36 @@
 <script>
     const review = document.getElementById('review');
 
-    const openReviewForm = document.getElementById('open-review-form')
-    if(openReviewForm){
-        openReviewForm.addEventListener('click',()=>{
-            review.classList.remove('hidden')
+    const createReviewForm = document.getElementById('create-review-form')
+    if(createReviewForm){
+        createReviewForm.addEventListener('click',()=>{
             sessionStorage.setItem('showReviewForm','true')
+            window.location.href = "{% url 'ProductPage' product.id %}?create_review=True"
+        })
+    }
+    const editReviewForm = document.getElementById('edit-review-form')
+    if(editReviewForm){
+        editReviewForm.addEventListener('click',()=>{
+            sessionStorage.setItem('showReviewForm','true')
+            window.location.href = "{% url 'ProductPage' product.id %}?edit_review=True&review_id={{ user_review.id }}"
         })
     }
     
     const clReviewBtn = document.getElementById('cl-review-btn');
     if(clReviewBtn){
         clReviewBtn.addEventListener('click',()=>{
-            review.classList.add('hidden');
             sessionStorage.removeItem('showReviewForm');
+            window.history.back();
         })
     }
 
     const reviewClnBg = document.getElementById('review-cln-bg');
-    if(reviewClnBg){
-        reviewClnBg.addEventListener('click', ()=>{
+    if (reviewClnBg) {
+        reviewClnBg.addEventListener('click', function () {
             review.classList.add('hidden');
-            sessionStorage.removeItem('showReviewForm')
-        })
+            sessionStorage.removeItem('showReviewForm');
+            window.location.href = "{% url 'ProductPage' product.id %}";
+        });
     }
 
     if (sessionStorage.getItem("showReviewForm") === "true") {
@@ -300,9 +357,12 @@
         // cartSidebarRight.classList.add('animate-slide-in-right');
     }
 
-    const reviewForm = document.getElementById('review-form')
-    reviewForm.addEventListener('submit', function () {
-        sessionStorage.removeItem('showReviewForm');
-    });
+    const reviewForm = document.getElementById('review-form');
+
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', function () {
+            sessionStorage.removeItem('showReviewForm');
+        });
+    }
     
 </script>

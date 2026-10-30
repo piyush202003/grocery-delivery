@@ -1,4 +1,5 @@
 from django import forms
+from matplotlib.pyplot import cla
 from .models import Review
 
 
@@ -15,14 +16,18 @@ class ReviewForm(forms.ModelForm):
                     (3, "★★★ - Average"),
                     (2, "★★ - Poor"),
                     (1, "★ - Very poor"),
-                ]
+                ], attrs={
+                    "class": "w-full px-4 py-2.5 text-sm rounded-xl border border-zinc-300 focus:border-green-900 outline-non"
+                }
             ),
             "title": forms.TextInput(attrs={
-                "placeholder": "Give your review a title"
+                "placeholder": "Give your review a title",
+                "class" : 'w-full px-4 py-2.5 text-sm rounded-xl border border-zinc-300 focus:border-green-900 outline-non'
             }),
             "comment": forms.Textarea(attrs={
                 "placeholder": "Share your experience with this product",
-                "rows": 4
+                "rows": 4,
+                "class": "w-full px-4 py-2.5 text-sm rounded-xl border border-zinc-300 focus:border-green-900 outline-non"
             }),
         }
 
