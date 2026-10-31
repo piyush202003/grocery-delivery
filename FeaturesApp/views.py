@@ -250,7 +250,7 @@ def Products(request):
     }
     return render(request, "Products.html", context=context)
 
-def ProductPage(request,pdid,review_id=None):
+def ProductPage(request,pdid):
     product = get_object_or_404(
         Product.objects.annotate(
             average_rating=Avg('reviews__rating'),
@@ -266,12 +266,20 @@ def ProductPage(request,pdid,review_id=None):
         total_reviews=Count('reviews__id')
     ).exclude(id=pdid)[:8]
 
-    cartData = request.session.get("cart",{})
-    displayQuantity = cartData.get(str(pdid), 0)
-    inCart = str(pdid) in cartData
-    
+    if request.user.is_authenticated:
+        cartData = CartItem.objects.filter(user=request.user, product=product).first()
+        if cartData:
+            displayQuantity = cartData.quantity
+            inCart=True
+        else:
+            inCart= False
+            displayQuantity= 0
+    else:
+        cartData = request.session.get("cart", {})
+        displayQuantity = cartData.get(str(pdid), 0)
+        inCart = str(pdid) in cartData
+        print(cartData)
 
-    # reviews = generate_dummy_reviews(product)
     reviews = (
         Review.objects.filter(product=product)
         .select_related("user")
