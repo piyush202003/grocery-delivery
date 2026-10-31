@@ -16,12 +16,11 @@
     {% tailwind_css %}
     <link rel="icon" href="{% static 'icons/favicon.png' %}">
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
-    <!-- Leaflet JS -->
+    <!-- Leaflet for map implementation -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+    {% comment %} Other blocks {% endcomment %}
     {% block head %}{% endblock %}
     {% block extra_css %}{% endblock %}
 </head>

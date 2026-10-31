@@ -16,6 +16,7 @@ class AddressForm(forms.ModelForm):
             }),
             'address' : forms.TextInput(attrs={
                 'class' : "w-full px-4 py-2.5 text-sm rounded-xl border border-zinc-300 focus:border-green-900 outline-none",
+                'placeholder':'Plot no, House name, Colony Name, Specific landmarks, etc.'
             }),
             'city' : forms.TextInput(attrs={
                 'placeholder' : "Mumbai, Pune, etc.",

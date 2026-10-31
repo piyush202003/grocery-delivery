@@ -23,8 +23,8 @@ class Address(models.Model):
     state = models.CharField(max_length=100)
     zip = models.CharField(max_length=10)
     is_default = models.BooleanField(default=False)
-    lat = models.FloatField(blank=True, null=True)
-    lng = models.FloatField(blank=True, null=True)    
+    lat = models.DecimalField( max_digits=10, decimal_places=7)
+    lng = models.DecimalField( max_digits=10, decimal_places=7) 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -12,6 +12,7 @@ from django.utils import timezone
 from FeaturesApp.forms import AddressForm
 from FeaturesApp.other_functions import create_review, edit_review, get_rating_breakdown
 from accounts.models import Address
+from config import settings
 from reviews.models import HelpfulVote, Review
 
 from .dummyData import statusColors
@@ -371,6 +372,9 @@ def Checkout(request):
         address = addresses.filter(id=int(prevAdd)).first()
     else:
         address = addresses.filter(is_default=True).first()
+        if address == None:
+            messages.info(request, 'Please add at least one address!')
+            return redirect('Addresses')
         request.session['addrId'] = address.id
 
     paymentMethod = request.session.get("paymentMethod", "cash")
@@ -569,6 +573,7 @@ def Addresses(request, id=None):
         'form' : form,
         'isEdit':address is not None,
         'address':address,
+        'CARTO_API_KEY':settings.CARTO_API_KEY
     }
     return render(request, "Addresses.html", context=context)
 
