@@ -1,22 +1,32 @@
 from datetime import timedelta
 from decimal import Decimal
 
+from django.db import transaction
 from django.db.models import Q
 from django.db.models.aggregates import Avg, Count
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.urls import reverse
+from django.views.decorators.http import require_POST
 from django.utils import timezone
 
+from razorpay.errors import SignatureVerificationError
+
 from FeaturesApp.forms import AddressForm
-from FeaturesApp.other_functions import create_review, edit_review, get_rating_breakdown
+from FeaturesApp.other_functions import create_review, edit_review, get_rating_breakdown, get_razorpay_client
 from accounts.models import Address
 from config import settings
 from reviews.models import HelpfulVote, Review
 
 from .dummyData import statusColors
 from .models import CartItem, Category, Order, OrderItem, OrderStatus, Product
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 def Home(request):
@@ -367,76 +377,243 @@ def FlashDeals(request):
 # from here all are needed authentication verification
 @login_required(login_url='Login')
 def Checkout(request):
+
     cartData = cart(request)
 
-    addresses = Address.objects.filter(user=request.user)
-    address = None
-    newAdd = request.GET.get('addrId','')
-    prevAdd = request.session.get('addrId','')
-    if newAdd:
-        address = addresses.filter(id=int(newAdd)).first()
-        request.session['addrId'] = address.id
-    elif prevAdd:
-        address = addresses.filter(id=int(prevAdd)).first()
-    else:
-        address = addresses.filter(is_default=True).first()
-        if address == None:
-            messages.info(request, 'Please add at least one address!')
-            return redirect('Addresses')
-        request.session['addrId'] = address.id
-
-    paymentMethod = request.session.get("paymentMethod", "cash")
-    if request.method == "POST":
-        paymentMethod = request.POST.get("payment_method")
-        request.session["paymentMethod"] = paymentMethod
-
-
-    step = request.GET.get("step", "address")
-    steps = [
-        {'key':'address', 'label':'Address', 'icon':'map-pin'},
-        {'key':'payment', 'label':'Payment', 'icon':'credit-card'},
-        {'key':'review', 'label':'Review', 'icon':'check'},
-    ]
-
-    if request.GET.get('placeOrder'):
-        order = Order.objects.create(
-            user=request.user,
-            shipping_address=address,
-            payment_method=paymentMethod,
-            subtotal=cartData['cart_total'],
-            delivery_fee=cartData['delivery_fee'],
-            tax=cartData['tax'],
-            total=cartData['last_total'],
-            status='Placed',
-        )
-
-        for item in cartData['cart_items']:
-            OrderItem.objects.create(
-                order=order,
-                product=item['product'],
-                quantity=item['quantity'],
-                price=item['total'],
-            )
-
-        OrderStatus.objects.create(
-            order=order,
-            status='Placed',
-            note='Order Placed Successfully',
-        )
-
-        clear_cart(request)
-        messages.success(request, 'Your order has been placed')
+    if not cartData['cart_items']:
+        messages.info(request, "Your cart is empty.")
         return redirect('Home')
 
+    addresses = Address.objects.filter(user=request.user)
+
+    address_id = request.GET.get('addrId') or request.session.get('addrId')
+
+    address = addresses.filter(id=address_id).first() if address_id else None
+
+    if address is None:
+        address = addresses.filter(is_default=True).first()
+
+    if address is None:
+        messages.info(request, 'Please add at least one address!')
+        return redirect('Addresses')
+
+    request.session['addrId'] = address.id
+
+    paymentMethod = request.session.get("paymentMethod", "cash")
+
+    step = request.GET.get("step", "address")
+
+    steps = [
+        {'key': 'address', 'label': 'Address', 'icon': 'map-pin'},
+        {'key': 'payment', 'label': 'Payment', 'icon': 'credit-card'},
+        {'key': 'review', 'label': 'Review', 'icon': 'check'},
+    ]
+
+    # Save selected payment method
+    if request.method == "POST" and request.GET.get("step") == "review" and not request.POST.get("place_order"):
+
+        selected_method = request.POST.get("payment_method")
+
+        if selected_method not in ["card", "cash"]:
+            messages.error(request, "Please select a valid payment method.")
+            return redirect(f"{reverse('Checkout')}?step=payment")
+
+        request.session["paymentMethod"] = selected_method
+
+        return redirect(f"{reverse('Checkout')}?step=review")
+
+    # Place order
+    if request.method == "POST" and request.POST.get("place_order"):
+
+        paymentMethod = request.session.get("paymentMethod", "cash")
+
+        with transaction.atomic():
+
+            order = Order.objects.create(
+                user=request.user,
+                shipping_address=address,
+                payment_method=paymentMethod,
+                subtotal=cartData['cart_total'],
+                delivery_fee=cartData['delivery_fee'],
+                tax=cartData['tax'],
+                total=cartData['last_total'],
+                status='Placed' if paymentMethod == 'cash' else 'Pending Payment',
+                is_paid=False,
+            )
+
+            for item in cartData['cart_items']:
+                OrderItem.objects.create(
+                    order=order,
+                    product=item['product'],
+                    quantity=item['quantity'],
+                    price=item['total'],
+                )
+
+            OrderStatus.objects.create(
+                order=order,
+                status=order.status,
+                note='Order Placed' if paymentMethod == 'cash' else 'Waiting for online payment',
+            )
+
+        # Cash on Delivery
+        if paymentMethod == "cash":
+
+            clear_cart(request)
+
+            messages.success(request, "Your order has been placed successfully!")
+
+            return redirect('Home')
+
+        # Online Payment
+        if paymentMethod == "card":
+
+            print("RAZORPAY KEY ID:", bool(settings.RAZORPAY_KEY_ID))
+            print(
+                "RAZORPAY SECRET CONFIGURED:",
+                bool(settings.RAZORPAY_KEY_SECRET)
+            )
+            print("ORDER TOTAL:", order.total)
+            print("AMOUNT IN PAISE:", int(order.total * 100))
+
+            try:
+                client = get_razorpay_client()
+
+                razorpay_order = client.order.create({
+                    "amount": int(order.total * 100),
+                    "currency": "INR",
+                    "receipt": f"order_{order.id}",
+                })
+
+                order.razorpay_order_id = razorpay_order['id']
+                order.save(update_fields=['razorpay_order_id'])
+
+                context = {
+                    "order": order,
+                    "razorpay_order_id": razorpay_order['id'],
+                    "razorpay_key": settings.RAZORPAY_KEY_ID,
+                    "razorpay_amount": int(order.total * 100),
+                }
+
+                return render(request, "components/Checkout/RazorpayPayment.html", context)
+
+            except Exception as e:
+                logger.exception("Razorpay order creation failed")
+
+                messages.error(
+                    request,
+                    f"Payment initialization failed: {str(e)}"
+                )
+
+                return redirect(f"{reverse('Checkout')}?step=review")
+
     context = {
-        "cart":cartData,
-        'addresses':addresses,
-        'address':address,
-        'paymentMethod':paymentMethod,
-        'step':step,
-        'steps':steps,
+        "cart": cartData,
+        "addresses": addresses,
+        "address": address,
+        "paymentMethod": paymentMethod,
+        "step": step,
+        "steps": steps,
     }
-    return render(request, "Checkout.html", context=context)
+
+    return render(request, "Checkout.html", context)
+
+@login_required(login_url='Login')
+@require_POST
+def VerifyPayment(request, order_id):
+
+    order = get_object_or_404(
+        Order,
+        id=order_id,
+        user=request.user
+    )
+
+    payment_id = request.POST.get("razorpay_payment_id")
+    razorpay_order_id = request.POST.get("razorpay_order_id")
+    signature = request.POST.get("razorpay_signature")
+
+    if not all([payment_id, razorpay_order_id, signature]):
+        messages.error(request, "Payment details are incomplete.")
+        return redirect('Checkout')
+
+    if order.razorpay_order_id != razorpay_order_id:
+        messages.error(request, "Invalid payment order.")
+        return redirect('Checkout')
+
+    client = get_razorpay_client()
+
+    try:
+        client.utility.verify_payment_signature({
+            "razorpay_order_id": razorpay_order_id,
+            "razorpay_payment_id": payment_id,
+            "razorpay_signature": signature,
+        })
+
+        payment = client.payment.fetch(payment_id)
+
+        if (
+            payment['order_id'] != order.razorpay_order_id
+            or int(payment['amount']) != int(order.total * 100)
+            or payment['currency'] != "INR"
+            or payment['status'] != "captured"
+        ):
+            messages.error(request, "Payment has not been confirmed.")
+            return redirect('Checkout')
+
+        with transaction.atomic():
+
+            locked_order = Order.objects.select_for_update().get(
+                id=order.id,
+                user=request.user
+            )
+
+            if not locked_order.is_paid:
+
+                locked_order.is_paid = True
+                locked_order.razorpay_payment_id = payment_id
+                locked_order.status = "Placed"
+
+                locked_order.save(update_fields=[
+                    "is_paid",
+                    "razorpay_payment_id",
+                    "status",
+                    "updated_at",
+                ])
+
+                OrderStatus.objects.create(
+                    order=locked_order,
+                    status="Placed",
+                    note="Online payment successful."
+                )
+
+        clear_cart(request)
+
+        messages.success(request, "Payment successful! Your order is confirmed.")
+
+        return redirect('Home')
+    
+    except SignatureVerificationError:
+        messages.error(request, "Payment verification failed.")
+        return redirect('Checkout')
+
+    except Exception:
+        messages.error(request, "Unable to verify payment. Please contact support.")
+        return redirect('Checkout')
+    
+@login_required(login_url='Login')
+def PaymentFailed(request, order_id):
+
+    order = get_object_or_404(
+        Order,
+        id=order_id,
+        user=request.user
+    )
+
+    messages.warning(
+        request,
+        "Payment was not completed. You can retry payment."
+    )
+
+    return redirect('Checkout')
 
 @login_required(login_url='Login')
 def MyOrders(request):

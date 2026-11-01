@@ -10,6 +10,8 @@ urlpatterns = [
     path("deals/", FlashDeals, name = "FlashDeals"),
     
     path("checkout/", Checkout, name="Checkout"),
+    path('verify-payment/<int:order_id>/', VerifyPayment, name='VerifyPayment'),
+    path('payment-failed/<int:order_id>/', PaymentFailed, name='PaymentFailed'),
 
     path("orders/", MyOrders, name="MyOrders"),
     path("orders/<int:odid>/", OrderTracking, name = "OrderTracking"),

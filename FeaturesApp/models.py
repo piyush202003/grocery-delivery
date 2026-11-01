@@ -70,6 +70,7 @@ class DeliveryPartner(models.Model):
 
 class Order(models.Model):
     STATUS_CHOICES = (
+        ("Pending Payment", "Pending Payment"),
         ("Placed", "Placed"),
         ("Confirmed", "Confirmed"),
         ('Assigned', 'Assigned'),
@@ -98,6 +99,8 @@ class Order(models.Model):
     is_paid = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    razorpay_order_id = models.CharField( max_length=100, blank=True, null=True)
+    razorpay_payment_id = models.CharField( max_length=100, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if self.status == 'Out for Delivery':

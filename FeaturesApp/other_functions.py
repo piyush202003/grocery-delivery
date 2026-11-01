@@ -1,7 +1,9 @@
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
+import razorpay
 from FeaturesApp.models import Product
+from config import settings
 from reviews.forms import ReviewForm
 from reviews.models import Review
 
@@ -80,3 +82,11 @@ def edit_review(request, review_id):
     }
     return context
 
+# RazorPay functions
+def get_razorpay_client():
+    return razorpay.Client(
+        auth=(
+            settings.RAZORPAY_KEY_ID,
+            settings.RAZORPAY_KEY_SECRET
+        )
+    )

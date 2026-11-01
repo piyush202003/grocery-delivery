@@ -15,4 +15,5 @@ dependencies = [
     "dotenv>=0.9.9",
     "matplotlib>=3.11.2",
     "pillow==12.3.0",
+    "razorpay>=2.0.1",
 ]

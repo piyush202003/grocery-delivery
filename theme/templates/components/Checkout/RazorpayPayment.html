@@ -1,0 +1,83 @@
+{% extends "AppLayout.html" %}
+
+{% block content %}
+
+<div class="max-w-xl mx-auto p-6">
+    <div class="bg-white rounded-2xl shadow p-6 text-center">
+
+        <h2 class="text-xl font-bold text-green-900 mb-3">
+            Complete Your Payment
+        </h2>
+
+        <p class="text-zinc-500 mb-4">
+            Order #{{ order.id }}
+        </p>
+
+        <h3 class="text-2xl font-bold text-green-900 mb-6">
+            ₹{{ order.total }}
+        </h3>
+
+        <button id="pay-button"
+                class="bg-green-700 hover:bg-green-600 text-white rounded-xl px-6 py-3 font-semibold w-full">
+            Pay Now
+        </button>
+
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    const options = {
+        key: "{{ razorpay_key|escapejs }}",
+        amount: "{{ razorpay_amount }}",
+        currency: "INR",
+        name: "Grocery Store",
+        description: "Order #{{ order.id }}",
+        order_id: "{{ razorpay_order_id }}",
+
+        handler: function (response) {
+
+            const form = document.createElement("form");
+
+            form.method = "POST";
+            form.action = "{% url 'VerifyPayment' order.id %}";
+
+            const csrf = document.createElement("input");
+            csrf.type = "hidden";
+            csrf.name = "csrfmiddlewaretoken";
+            csrf.value = "{{ csrf_token }}";
+            form.appendChild(csrf);
+
+            for (const key in response) {
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = key;
+                input.value = response[key];
+                form.appendChild(input);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        },
+
+        theme: {
+            color: "#15803d"
+        },
+
+        modal: {
+            ondismiss: function () {
+                window.location.href = "{% url 'PaymentFailed' order.id %}";
+            }
+        }
+    };
+
+    const razorpay = new Razorpay(options);
+
+    document.getElementById("pay-button").onclick = function (e) {
+        razorpay.open();
+        e.preventDefault();
+    };
+</script>
+
+{% endblock %}

@@ -148,6 +148,8 @@ environ.Env.read_env(
 
 ADMIN_MAILS = env('ADMIN_MAILS')
 CARTO_API_KEY = env('CARTO_API_KEY')
+RAZORPAY_KEY_ID=env('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET=env('RAZORPAY_KEY_SECRET')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
