@@ -457,27 +457,14 @@ def Checkout(request):
 
         # Cash on Delivery
         if paymentMethod == "cash":
-
             clear_cart(request)
-
             messages.success(request, "Your order has been placed successfully!")
-
             return redirect('Home')
 
         # Online Payment
         if paymentMethod == "card":
-
-            print("RAZORPAY KEY ID:", bool(settings.RAZORPAY_KEY_ID))
-            print(
-                "RAZORPAY SECRET CONFIGURED:",
-                bool(settings.RAZORPAY_KEY_SECRET)
-            )
-            print("ORDER TOTAL:", order.total)
-            print("AMOUNT IN PAISE:", int(order.total * 100))
-
             try:
                 client = get_razorpay_client()
-
                 razorpay_order = client.order.create({
                     "amount": int(order.total * 100),
                     "currency": "INR",
@@ -601,17 +588,13 @@ def VerifyPayment(request, order_id):
     
 @login_required(login_url='Login')
 def PaymentFailed(request, order_id):
+    try:
+        order = Order.objects.filter(id=order_id, user=request.user).first()
+        order.delete()
+    except Exception as e:
+        messages.error(request, e.message)
 
-    order = get_object_or_404(
-        Order,
-        id=order_id,
-        user=request.user
-    )
-
-    messages.warning(
-        request,
-        "Payment was not completed. You can retry payment."
-    )
+    messages.warning( request, "Payment was not completed. You can retry payment.")
 
     return redirect('Checkout')
 
