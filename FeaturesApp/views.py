@@ -379,15 +379,12 @@ def FlashDeals(request):
 def Checkout(request):
 
     cartData = cart(request)
-
     if not cartData['cart_items']:
         messages.info(request, "Your cart is empty.")
         return redirect('Home')
 
     addresses = Address.objects.filter(user=request.user)
-
     address_id = request.GET.get('addrId') or request.session.get('addrId')
-
     address = addresses.filter(id=address_id).first() if address_id else None
 
     if address is None:

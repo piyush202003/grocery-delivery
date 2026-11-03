@@ -33,7 +33,7 @@
                             <td class="px-4 py-4">
                                 
                                 {% if order.delivery_partner %}
-                                    <div class="flex items-center gap-2">
+                                    <a href="?assignModal={{ order.id }}" class="flex items-center gap-2 border border-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors p-1">
                                         <div class="size-6 rounded-full bg-green-900 flex items-center justify-center">
                                             <span class="text-white text-[10px] font-semibold">{{ order.delivery_partner.user.first_name|first|upper }}</span>
                                         </div>
@@ -41,7 +41,7 @@
                                             <p class="text-xs font-medium text-zinc-900">{{ order.delivery_partner.user }}</p>
                                             <p class="text-[10px] text-zinc-500">{{ order.delivery_partner.phone }}</p>
                                         </div>
-                                    </div>
+                                    </a>
                                 {% else %}
                                     <!-- onClick={() => { setAssignModal(order._id); setSelectedPartner(""); }} -->
                                     {% if order.status == 'Confirmed' %}
@@ -78,7 +78,7 @@
                                             Assign Delivery Partner
                                         </span>
                                     {% else %}
-                                        <span class="px-3 py-1.5 rounded-lg text-xs font-semibold border-r-8 border-transparent outline-none cursor-pointer leading-tight bg-zinc-100 text-zinc-800">{{ order.status }}</span>
+                                        <span class="px-3 py-1.5 rounded-lg text-xs font-semibold border-r-8 border-transparent outline-none leading-tight bg-zinc-100 text-zinc-800">{{ order.status }}</span>
                                     {% endif %}
                                 </form>
                             </td>
@@ -97,20 +97,20 @@
     <!-- Assign Modal -->
     
     {% if assignModal %}
-        <div class="fixed inset-0 bg-amber-100/80 backdrop-blur z-50"></div>
+        <div class="fixed inset-0 bg-amber-100/5 backdrop-blur z-50"></div>
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <form method="POST" action="{% url 'AdminOrders' %}?assignModal=None" class="bg-white rounded-2xl p-6 w-full max-w-sm animate-fade-in">
+            <form method="POST" action="{% url 'AdminOrders' %}" class="bg-amber-50 border-2 border-green-900 rounded-2xl p-6 w-full max-w-sm animate-fade-in">
                 <h3 class="text-lg font-semibold text-green-900 mb-2">Adding Delivery Partner</h3>
                 <h4 class="text-sm font-semibold text-green-900 mb-4">For Order Id = #{{ assignModal|slice:'-6:'|upper }}</h4>
 
-                <div class="space-y-2 mb-5 max-h-60 overflow-y-auto">
+                <div class="space-y-2 mb-5 max-h-60 overflow-y-auto no-scrollbar">
                     {% csrf_token %}
                     <input type="hidden" name="order_id" value="{{ assignModal }}">
                     {% for partner in partners %}
-                        <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors {% if selectedPartner == partner.id %}border-green-900 bg-green-50{% else %} border-zinc-300 hover:bg-amber-50{% endif %}">
+                        <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors {% if selectedPartner.id == partner.id %}border-green-900 bg-green-50{% else %} border-zinc-300 hover:bg-amber-100{% endif %}">
 
                             <input type="radio" name="partner" value="{{ partner.id }}"
-                                {% if selectedPartner == partner.id %}checked{% endif %}
+                                {% if selectedPartner.id == partner.id %}checked{% endif %}
                                 class="text-green-900">
 
                             <div class="size-8 rounded-full bg-green-900 flex items-center justify-center">

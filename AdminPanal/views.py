@@ -134,17 +134,18 @@ def AdminOrders(request):
                     )
                 messages.success(request, f'Updated status of order #{order_id} is {status}')
 
-    assignModal = request.GET.get('assignModal')
-    if assignModal :
-        if assignModal == 'None':
-            request.session['assignModal'] = None
-            assignModal = None
-        else:
+    try:
+        assignModal = request.GET.get('assignModal', 0)
+        if assignModal:
+            assignModal = int(assignModal)
+            od = Order.objects.filter(id=assignModal).first()
+            selectedPartner = od.delivery_partner
             request.session['assignModal'] = assignModal
-            selectedPartner = ''
-    else:
-        assignModal = request.session.get('assignModal')
-    
+        else:
+            request.session.pop('assignModal', None)
+    except Exception as e:
+        messages.error(request, 'Something went wrong while opening assing delivery partner!')
+        return redirect('AdminOrders')
     
     context={
         'AdminLinkData':AdminLinkData,
@@ -153,7 +154,6 @@ def AdminOrders(request):
         'statusOptions':statusOptions,
         'assignModal':assignModal,
         'selectedPartner':selectedPartner,
-
     }
     return render(request, 'admin/AdminOrders.html', context=context)
 
