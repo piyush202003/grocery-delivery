@@ -56,8 +56,8 @@ def DeliveryDashboard(request):
         orders = orders.filter(status__in=['Assigned', 'Packed', 'Out for Delivery'])
     
     # Tracking share location
-    tracking = request.GET.get("tracking")
-    if tracking is not None:
+    tracking = request.GET.get("tracking", 0)
+    if tracking:
         tracking = tracking == "1"
         request.session["deliveryPartnerTracking"] = tracking
     else:

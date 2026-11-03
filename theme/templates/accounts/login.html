@@ -57,6 +57,7 @@
                     {% csrf_token %}
                 
                     {% if not is_login %}
+
                         <label for="" class="text-sm flex flex-col gap-1">
                             Username
                             <div class="relative">
@@ -64,6 +65,7 @@
                                 <input type="text" name="username" required placeholder="Enter Username (must be unique)" class="w-full pl-11 pr-4 py-3 text-sm bg-white rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
                             </div>
                         </label>
+
                         <div class="flex flex-col md:flex-row gap-3">
                             <label for="" class="flex flex-col flex-1 text-sm gap-1">
                                 First Name
@@ -80,6 +82,14 @@
                                 </div>
                             </label>
                         </div>
+
+                        <label for="" class="text-sm flex flex-col gap-1">
+                            Phone No.
+                            <div class="relative">
+                                <i data-lucide="phone" class="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-500"></i>
+                                <input type='phone' name="phone" required placeholder="Enter Phone Number" class="w-full pl-11 pr-4 py-3 text-sm bg-white rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
+                            </div>
+                        </label>
                     {% endif %}
                     <label for="" class="text-sm flex flex-col gap-1">
                         Email Address

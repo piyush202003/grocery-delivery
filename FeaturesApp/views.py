@@ -734,6 +734,7 @@ def Addresses(request, id=None):
         form = AddressForm(instance=address)
 
     context = {
+        'cart':cart(request),
         'addresses': addresses,
         'form' : form,
         'isEdit':address is not None,

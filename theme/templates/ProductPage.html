@@ -82,11 +82,11 @@
                         
                         <!-- Price -->
                         <div class="flex items-baseline gap-3 mb-5">
-                            <span class="text-3xl md:text-4xl font-semibold text-green-900">$ {{ product.price }}</span>
+                            <span class="text-3xl md:text-4xl font-semibold text-green-900">₹ {{ product.price }}</span>
                             <span class="text-xl font-semibold text-zinc-400">/ {{ product.unit }}</span>
                             
                             {% if product.original_price > product.price %}
-                                <span class="text-lg text-zinc-400 line-through">$ {{ product.original_price }}</span>
+                                <span class="text-lg text-zinc-400 line-through">₹ {{ product.original_price }}</span>
                             {% endif %}
                                 
                         </div>

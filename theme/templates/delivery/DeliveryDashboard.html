@@ -7,16 +7,15 @@
 {% block content %}
     <div class="space-y-6">
         <!-- Tabs + Tracking toggle -->
-        {{ user.delivery_partner.is_active }}
         <div class="flex items-center gap-2 flex-wrap">
             
             <a href="?tab=active">
                 <button class="px-4 py-2 text-sm font-medium rounded-xl transition-colors cursor-pointer
-                {% if tab == 'active' %}
-                    bg-green-900 text-white
-                {% else %}
-                    bg-white text-zinc-400 hover:bg-amber-50 border border-zinc-400
-                {% endif %}
+                    {% if tab == 'active' %}
+                        bg-green-900 text-white
+                    {% else %}
+                        bg-white text-zinc-400 hover:bg-amber-50 border border-zinc-400
+                    {% endif %}
                 ">
                     Active
                 </button>
@@ -34,19 +33,15 @@
             </a>
             <div class="ml-auto">
                 <a href="?tracking={% if tracking %}0{% else %}1{% endif %}">
-                    <button class="px-4 py-2 text-sm font-medium rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer
-                    {% if tracking %}
-                        bg-green-600 text-white
-                    {% else %}
-                        bg-white text-zinc-600 border border-zinc-400 hover:bg-amber-100
-                    {% endif %}
+                    <button class="px-4 py-2 text-sm font-semibold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer
+                        {% if tracking %}
+                            bg-green-900 text-white animate-bounce
+                        {% else %}
+                            bg-white text-zinc-600 border border-zinc-400 hover:bg-amber-100
+                        {% endif %}
                         
                     ">
-                        <i data-lucide="navigation" class="w-3.5 h-3.5 
-                        {% if tracking %}
-                            animate-pulse
-                        {% endif %}
-                        "></i>
+                        <i data-lucide="navigation" class="w-3.5 h-3.5"></i>
                         {% if tracking %}
                             'Sharing Location'
                         {% else %}

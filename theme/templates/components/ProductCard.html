@@ -37,11 +37,11 @@
                 
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-1 truncate">
-                        <span class="text-base font-medium">${{ product.price }}</span>
+                        <span class="text-base font-medium">₹{{ product.price }}</span>
                         <span class="text-xs text-zinc-400 block">/{{ product.unit }}</span>
                         
                         {% if product.original_price > product.price %}
-                            <span class="text-xs text-zinc-400 line-through self-end">${{ product.original_price }}</span>
+                            <span class="text-xs text-zinc-400 line-through self-end"> ₹{{ product.original_price }}</span>
                         {% endif %}
                             
                     </div>

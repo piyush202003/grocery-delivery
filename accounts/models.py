@@ -4,7 +4,7 @@ from .services.geocoding import geocode_address
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
-    phone = models.CharField(max_length=15, blank=True)
+    phone = models.CharField(max_length=15)
     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
     is_admin = models.BooleanField(default=False)
     is_delivery_partner = models.BooleanField(default=False)

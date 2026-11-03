@@ -36,6 +36,7 @@ def register_view(request):
         username = request.POST['username']
         first_name = request.POST['firstname']
         last_name = request.POST['lastname']
+        phone = request.POST['phone']
         email = request.POST['email']
         password = request.POST['password']
 
@@ -51,6 +52,7 @@ def register_view(request):
             username = username,
             first_name = first_name,
             last_name = last_name,
+            phone=phone,
             email = email,
             password = password,
             is_admin = email in settings.ADMIN_MAILS
