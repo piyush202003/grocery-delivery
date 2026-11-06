@@ -2,7 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import F, Q
 from django.db.models.aggregates import Avg, Count
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
@@ -454,7 +454,21 @@ def Checkout(request):
 
         # Cash on Delivery
         if paymentMethod == "cash":
-            clear_cart(request)
+            with transaction.atomic():
+                cart_items = CartItem.objects.filter(user=request.user)
+                for item in cart_items:
+                    updated = Product.objects.filter(
+                        id=item.product.id,
+                        stock__gte=item.quantity
+                    ).update(
+                        stock=F('stock') - item.quantity
+                    )
+
+                    if updated == 0:
+                        raise ValueError(
+                            f"{item.product.name} is out of stock."
+                        )
+                clear_cart(request)
             messages.success(request, "Your order has been placed successfully!")
             return redirect('Home')
 
@@ -482,12 +496,7 @@ def Checkout(request):
 
             except Exception as e:
                 logger.exception("Razorpay order creation failed")
-
-                messages.error(
-                    request,
-                    f"Payment initialization failed: {str(e)}"
-                )
-
+                messages.error( request, f"Payment initialization failed: {str(e)}")
                 return redirect(f"{reverse('Checkout')}?step=review")
 
     context = {
@@ -569,7 +578,21 @@ def VerifyPayment(request, order_id):
                     note="Online payment successful."
                 )
 
-        clear_cart(request)
+        with transaction.atomic():
+            cart_items = CartItem.objects.filter(user=request.user)
+            for item in cart_items:
+                updated = Product.objects.filter(
+                    id=item.product.id,
+                    stock__gte=item.quantity
+                ).update(
+                    stock=F('stock') - item.quantity
+                )
+
+                if updated == 0:
+                    raise ValueError(
+                        f"{item.product.name} is out of stock."
+                    )
+            clear_cart(request)
 
         messages.success(request, "Payment successful! Your order is confirmed.")
 
