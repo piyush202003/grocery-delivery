@@ -158,25 +158,28 @@
             {% include 'components/Review.html' %}
 
             <!-- Related Products -->
-            <section class="mt-12 mb-44">
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h2 class="text-2xl font-semibold text-green-900">Related Products</h2>
-                        <p class="text-sm text-zinc-300 mt-1">More from {{ product.category.name|upper|title }}</p>
+            {% if relatedProducts|length > 0 %}
+                <section class="mt-12 mb-12">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-green-900">Related Products</h2>
+                            <p class="text-sm text-zinc-300 mt-1">More from {{ product.category.name|upper|title }}</p>
+                        </div>
+                        <a href="{% url 'Products' %}?category={{ product.category.slug }}" class="text-sm font-semibold text-orange-400 hover:text-orange-600 flex items-center gap-1 transition-colors">
+                            View All
+                            <i data-lucide="arrow-right" class="size-4"></i>
+                        </a>
                     </div>
-                    <a href="{% url 'Products' %}?category={{ product.category.slug }}" class="text-sm font-semibold text-orange-400 hover:text-orange-600 flex items-center gap-1 transition-colors">
-                        View All
-                        <i data-lucide="arrow-right" class="size-4"></i>
-                    </a>
-                </div>
-                <div class="grid grid-clos-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 xl:gap-8">
-                    {% for rp in relatedProducts %}
-                        {% include 'components/ProductCard.html' with product=rp %}
-                    {% endfor %}
-                </div>
-                    
+                    <div class="grid grid-clos-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 xl:gap-8">
+                        {% for rp in relatedProducts %}
+                            {% include 'components/ProductCard.html' with product=rp %}
+                        {% endfor %}
+                    </div>
+                </section>
+            {% else %}
+            
+            {% endif %}
                 
-            </section>
                 
             
         </div>

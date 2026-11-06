@@ -20,6 +20,18 @@
   python manage.py runserver
 ```
 
+- To run in mobile:
+  - get IPv4 address from laptop and connect all devices to same wifi
+  - to get IPv4 ip address run this in terminal:
+    ```powershell
+    ipconfig
+    ```
+  - Then add that IPv4 address in .env for ALLOWED_HOSTS
+  - run this command on terminal to start the project
+    ```powershell
+    python manage.py runserver 0.0.0.0:8000
+    ```
+
 ##### Other things
 - Current Flawas
   - Email authentication and forgot password

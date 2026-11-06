@@ -50,6 +50,8 @@ def create_review(request, product_id):
                     messages.info(request, 'You have already reviewed this product.')
                     return redirect('ProductPage', pdid=product.pk)
                 raise
+        else:
+            messages.error(request,'Form of review create is not valid')
     else:
         form = ReviewForm()
 

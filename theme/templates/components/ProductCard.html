@@ -1,7 +1,7 @@
 {% load static %}
 
 <section>
-    <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-md transition-all duration-300 group cursor-pointer">
+    <div class="min-h-80 bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-md transition-all duration-300 group cursor-pointer">
         <a href="{% url 'ProductPage' product.id %}">
             <div class="relative aspect-square overflow-hidden">
                 <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover p-4 group-hover:p-2 transition-all duration-300">

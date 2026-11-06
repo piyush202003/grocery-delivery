@@ -1,69 +1,367 @@
-<div class="bg-white rounded-2xl p-4 shadow-sm">
-    <h2 class="text-lg font-semibold text-green-900 mb-3">
-        Track Your Delivery
-    </h2>
 
-    <div id="delivery-map"
-         style="height: 400px; width: 100%;"
-         class="rounded-xl">
+<div class="bg-white rounded-2xl p-4 shadow-sm border border-zinc-100">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h2 class="text-lg font-bold text-green-900">
+                Track Your Delivery
+            </h2>
+            <p class="text-sm text-zinc-500">
+                Follow your delivery partner in real time
+            </p>
+        </div>
+
+        <span class="flex items-center gap-2 text-xs font-medium text-green-700 bg-green-50 px-3 py-2 rounded-full">
+            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            Live
+        </span>
     </div>
 
-    <p id="driver-location-status"
-       class="text-sm text-zinc-500 mt-3">
-        Waiting for delivery partner's location...
-    </p>
-</div>
+    <!-- Map -->
+    <div id="delivery-map"
+         style="height: 420px; width: 100%;"
+         class="rounded-xl overflow-hidden">
+    </div>
 
+    <!-- Tracking status -->
+    <div class="mt-4 p-3 bg-green-50 rounded-xl">
+        <div class="flex items-center gap-3">
+            <div class="text-2xl">🛵</div>
+
+            <div class="flex-1">
+                <p id="driver-status"
+                   class="font-semibold text-green-900 text-sm">
+                    Waiting for delivery partner...
+                </p>
+
+                <p id="driver-location-status"
+                   class="text-xs text-zinc-500 mt-1">
+                    Waiting for location update
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Distance and ETA -->
+    <div class="grid grid-cols-2 gap-3 mt-3">
+
+        <div class="bg-zinc-50 rounded-xl p-3">
+            <p class="text-xs text-zinc-500">Distance remaining</p>
+            <p id="delivery-distance"
+               class="text-xl font-bold text-zinc-900 mt-1">
+                -- km
+            </p>
+        </div>
+
+        <div class="bg-zinc-50 rounded-xl p-3">
+            <p class="text-xs text-zinc-500">Estimated arrival</p>
+            <p id="delivery-eta"
+               class="text-xl font-bold text-green-700 mt-1">
+                -- min
+            </p>
+        </div>
+
+    </div>
+
+    <p class="text-xs text-zinc-400 mt-3">
+        Estimated travel time may change depending on road conditions.
+    </p>
+
+</div>
 <script>
+    
 const customerLocation = {
-    lat: Number("{{ order.shipping_address.lat }}"),
-    lng: Number("{{ order.shipping_address.lng }}")
+    lat: parseFloat("{{ order.shipping_address.lat|default_if_none:''|escapejs }}"),
+    lng: parseFloat("{{ order.shipping_address.lng|default_if_none:''|escapejs }}")
 };
 
 const orderLocationUrl = "{% url 'GetDeliveryLocation' order.id %}";
 
+const statusElement = document.getElementById('driver-status');
+const locationStatusElement = document.getElementById('driver-location-status');
+const distanceElement = document.getElementById('delivery-distance');
+const etaElement = document.getElementById('delivery-eta');
+
+let driverMarker = null;
+let routeLayer = null;
+let isFetching = false;
+let animationFrame = null;
+let lastRoutePosition = null;
+let lastRouteTime = 0;
+let hasFittedMap = false;
+
+let locationInterval = null;
+
+// Validate customer coordinates
+if (
+    !Number.isFinite(customerLocation.lat) ||
+    !Number.isFinite(customerLocation.lng) ||
+    customerLocation.lat < -90 ||
+    customerLocation.lat > 90 ||
+    customerLocation.lng < -180 ||
+    customerLocation.lng > 180
+) {
+    statusElement.textContent = "Delivery address coordinates unavailable.";
+    throw new Error("Invalid customer coordinates");
+}
+
 // Initialize map
 const deliveryMap = L.map('delivery-map').setView(
     [customerLocation.lat, customerLocation.lng],
-    14
+    15
 );
 
-// CARTO map tiles
+// CARTO basemap
 L.tileLayer(
     'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key={{ carto_api_key|urlencode }}',
     {
         attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
-            '&copy; <a href="https://carto.com/attributions">CARTO</a>',
-
+            '&copy; OpenStreetMap contributors &copy; CARTO',
         subdomains: 'abcd',
-        maxZoom: 20,
-        minZoom: 0
+        maxZoom: 20
     }
 ).addTo(deliveryMap);
 
+
+// Custom customer icon
+const customerIcon = L.divIcon({
+    className: 'custom-map-marker',
+    html: `
+        <div style="
+            background:#16a34a;
+            width:42px;
+            height:42px;
+            border:3px solid white;
+            border-radius:50%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:21px;
+            box-shadow:0 3px 10px rgba(0,0,0,.25);
+        ">🏠</div>
+    `,
+    iconSize: [42, 42],
+    iconAnchor: [21, 21]
+});
+
+
+// Custom delivery partner icon
+const driverIcon = L.divIcon({
+    className: 'custom-map-marker',
+    html: `
+        <div style="
+            background:#ffffff;
+            width:48px;
+            height:48px;
+            border:3px solid #16a34a;
+            border-radius:50%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:25px;
+            box-shadow:0 3px 12px rgba(0,0,0,.25);
+        ">🛵</div>
+    `,
+    iconSize: [48, 48],
+    iconAnchor: [24, 24]
+});
+
+
 // Customer marker
-const customerMarker = L.marker([
-    customerLocation.lat,
-    customerLocation.lng
-]).addTo(deliveryMap);
+const customerMarker = L.marker(
+    [customerLocation.lat, customerLocation.lng],
+    { icon: customerIcon }
+).addTo(deliveryMap);
 
 customerMarker.bindPopup("Your Delivery Address");
 
-// Driver marker
-let driverMarker = null;
 
-async function updateDriverLocation() {
+// Smoothly animate driver marker
+function moveDriverMarker(newPosition) {
+
+    if (!driverMarker) {
+        driverMarker = L.marker(
+            newPosition,
+            { icon: driverIcon }
+        ).addTo(deliveryMap);
+
+        driverMarker.bindPopup("Delivery Partner");
+        return;
+    }
+
+    if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+    }
+
+    const startPosition = driverMarker.getLatLng();
+
+    const startLat = startPosition.lat;
+    const startLng = startPosition.lng;
+
+    const endLat = newPosition[0];
+    const endLng = newPosition[1];
+
+    const duration = 1000;
+    const startTime = performance.now();
+
+    function animate(currentTime) {
+
+        const progress = Math.min(
+            (currentTime - startTime) / duration,
+            1
+        );
+
+        const lat = startLat + (endLat - startLat) * progress;
+        const lng = startLng + (endLng - startLng) * progress;
+
+        driverMarker.setLatLng([lat, lng]);
+
+        if (progress < 1) {
+            animationFrame = requestAnimationFrame(animate);
+        }
+    }
+
+    animationFrame = requestAnimationFrame(animate);
+}
+
+
+// Calculate straight-line distance using Haversine formula
+function calculateDistance(lat1, lng1, lat2, lng2) {
+
+    const earthRadius = 6371;
+
+    const toRadians = value => value * Math.PI / 180;
+
+    const dLat = toRadians(lat2 - lat1);
+    const dLng = toRadians(lng2 - lng1);
+
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRadians(lat1)) *
+        Math.cos(toRadians(lat2)) *
+        Math.sin(dLng / 2) ** 2;
+
+    return earthRadius * 2 * Math.atan2(
+        Math.sqrt(a),
+        Math.sqrt(1 - a)
+    );
+}
+
+
+// Get road route using OSRM
+async function updateDeliveryRoute(driverLat, driverLng) {
+
+    const now = Date.now();
+
+    const movedDistance = lastRoutePosition
+        ? calculateDistance(
+            lastRoutePosition[0],
+            lastRoutePosition[1],
+            driverLat,
+            driverLng
+        )
+        : Infinity;
+
+    // Refresh route after 100 metres or 30 seconds
+    if (
+        lastRoutePosition &&
+        movedDistance < 0.1 &&
+        now - lastRouteTime < 30000
+    ) {
+        return;
+    }
+
+    const url =
+        `https://router.project-osrm.org/route/v1/driving/` +
+        `${driverLng},${driverLat};` +
+        `${customerLocation.lng},${customerLocation.lat}` +
+        `?overview=full&geometries=geojson`;
 
     try {
 
-        const response = await fetch(orderLocationUrl);
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error("Route service unavailable");
+        }
+
+        const data = await response.json();
+
+        if (!data.routes || !data.routes.length) {
+            return;
+        }
+
+        const route = data.routes[0];
+
+        const coordinates = route.geometry.coordinates.map(
+            point => [point[1], point[0]]
+        );
+
+        if (routeLayer) {
+            deliveryMap.removeLayer(routeLayer);
+        }
+
+        routeLayer = L.polyline(coordinates, {
+            color: '#16a34a',
+            weight: 6,
+            opacity: 0.85,
+            lineCap: 'round',
+            lineJoin: 'round'
+        }).addTo(deliveryMap);
+
+        distanceElement.textContent =
+            (route.distance / 1000).toFixed(1) + " km";
+
+        etaElement.textContent =
+            Math.max(1, Math.ceil(route.duration / 60)) + " min";
+
+        lastRoutePosition = [driverLat, driverLng];
+        lastRouteTime = now;
+
+    } catch (error) {
+
+        console.error("Route error:", error);
+
+        // Keep the map usable even if routing fails
+        const distance = calculateDistance(
+            driverLat,
+            driverLng,
+            customerLocation.lat,
+            customerLocation.lng
+        );
+
+        distanceElement.textContent =
+            distance.toFixed(1) + " km";
+
+        etaElement.textContent = "Unavailable";
+    }
+}
+
+
+// Fetch latest driver location
+async function updateDriverLocation() {
+
+    if (isFetching || document.hidden) return;
+
+    isFetching = true;
+
+    try {
+
+        const response = await fetch(orderLocationUrl, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            cache: 'no-store'
+        });
+
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-            document.getElementById(
-                'driver-location-status'
-            ).innerText = data.message || "Driver location unavailable";
+
+            statusElement.textContent =
+                data.message || "Driver location unavailable";
 
             return;
         }
@@ -82,49 +380,78 @@ async function updateDriverLocation() {
 
         const driverPosition = [latitude, longitude];
 
-        if (!driverMarker) {
+        moveDriverMarker(driverPosition);
 
-            driverMarker = L.marker(driverPosition).addTo(deliveryMap);
+        statusElement.textContent =
+            "Your delivery partner is on the way!";
 
-            driverMarker.bindPopup("Delivery Partner");
-
-            // Show both markers initially
-            const bounds = L.latLngBounds([
-                [customerLocation.lat, customerLocation.lng],
-                driverPosition
-            ]);
-
-            deliveryMap.fitBounds(bounds, {
-                padding: [40, 40]
-            });
-
-        } else {
-
-            // Move existing marker
-            driverMarker.setLatLng(driverPosition);
-        }
-
-        document.getElementById(
-            'driver-location-status'
-        ).innerText =
+        locationStatusElement.textContent =
             "Last updated: " +
             new Date(data.location.updated_at).toLocaleTimeString();
 
+        // Fit map only on first successful location update
+        if (!hasFittedMap) {
+
+            const bounds = L.latLngBounds([
+                driverPosition,
+                [customerLocation.lat, customerLocation.lng]
+            ]);
+
+            deliveryMap.fitBounds(bounds, {
+                padding: [50, 50],
+                maxZoom: 16
+            });
+
+            hasFittedMap = true;
+        }
+
+        // Update road route
+        await updateDeliveryRoute(latitude, longitude);
+
     } catch (error) {
 
-        console.error(error);
+        console.error("Location error:", error);
 
-        document.getElementById(
-            'driver-location-status'
-        ).innerText = "Unable to fetch driver location.";
+        statusElement.textContent =
+            "Unable to connect to delivery partner.";
+
+    } finally {
+
+        isFetching = false;
     }
 }
 
-// Update every 5 seconds
+
+// Initial location fetch
 updateDriverLocation();
 
-const locationInterval = setInterval(
+// Refresh every 5 seconds
+locationInterval = setInterval(
     updateDriverLocation,
     5000
 );
+
+
+// Pause requests when browser tab is hidden
+document.addEventListener('visibilitychange', function() {
+
+    if (!document.hidden) {
+        updateDriverLocation();
+    }
+
+});
+
+
+// Stop polling when leaving the page
+window.addEventListener('pagehide', function() {
+
+    if (locationInterval) {
+        clearInterval(locationInterval);
+    }
+
+    if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+    }
+
+});
 </script>

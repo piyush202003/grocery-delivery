@@ -1,32 +1,69 @@
+{% load 'AppLayout.html' %}
 
-<h2>{{ page_title }}: {{ product.name }}</h2>
+{% block content %}
+    <section class="hidden" id="review">
+        <!-- Overlay -->
+        <div id="review-cln-bg" class="fixed inset-0 bg-black/40 z-[50]"></div>
 
-<form method="POST">
-    {% csrf_token %}
+        <!-- form container -->
+        <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+            <form 
+                method="POST" 
+                id='review-form'
+                class="bg-white rounded-2xl p-6 w-full max-w-lg animate-fade-in pointer-events-auto">
+                {% csrf_token %}
 
-    {{ form.non_field_errors }}
+                <!-- Form header -->
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-lg font-semibold text-green-900">
+                        
+                        {% if review_id %}
+                            Edit your review:
+                        {% else %}
+                            Write a review:
+                        {% endif %}
+                        {{ product.name }}
+                    </h2>
+                    <button type="button" id="cl-review-btn" class="p-2 hover:bg-amber-200 rounded-lg">
+                        <i data-lucide="x" class="size-5"></i>
+                    </button>
+                </div>
 
-    <div>
-        <label for="{{ form.rating.id_for_label }}">Rating</label>
-        {{ form.rating }}
-        {{ form.rating.errors }}
-    </div>
+                {{ form.non_field_errors }}
+                <!-- Form Input Fields -->
+                <div class="space-y-4">
 
-    <div>
-        <label for="{{ form.title.id_for_label }}">Title</label>
-        {{ form.title }}
-        {{ form.title.errors }}
-    </div>
+                    <div>
+                        <label for="{{ form.rating.id_for_label }}" class="block text-sm font-medium text-shadow-green-900 mb-1.5">Rating</label>
+                        {{ form.rating }}
+                        {{ form.rating.errors }}
+                    </div>
 
-    <div>
-        <label for="{{ form.comment.id_for_label }}">Your review</label>
-        {{ form.comment }}
-        {{ form.comment.errors }}
-    </div>
+                    <div>
+                        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-shadow-green-900 mb-1.5">Title</label>
+                        {{ form.title }}
+                        {{ for.title.error }}
+                    </div>
 
-    <button type="submit">Save review</button>
+                    <div>
+                        <label for="{{ form.comment.id_for_label }}" class="block text-sm font-medium text-shadow-green-900 mb-1.5">Comment</label>
+                        {{ form.comment }}
+                        {{ form.comment.errors }}
+                    </div>
 
-    <a href="{% url 'reviews:product' product.id %}">
-        Cancel
-    </a>
-</form>
+                </div> 
+
+                <button type="submit" class="mt-6 w-full py-3 bg-green-900 text-white font-semibold rounded-xl hover:bg-green-600 transition-colors cursor-pointer">
+                    
+                    {% if review_id %}
+                        Update Review
+                    {% else %}
+                        Add Review
+                    {% endif %}
+                        
+                </button>
+            </form>
+        </div>
+    </section>
+{% endblock content %}
+    

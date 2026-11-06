@@ -5,6 +5,18 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Environment Veiables
+env = environ.Env()
+
+environ.Env.read_env(
+    os.path.join(BASE_DIR, '.env')
+)
+
+ADMIN_MAILS = env('ADMIN_MAILS')
+CARTO_API_KEY = env('CARTO_API_KEY')
+RAZORPAY_KEY_ID=env('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET=env('RAZORPAY_KEY_SECRET')
+
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -13,8 +25,8 @@ SECRET_KEY = 'django-insecure-to6m!7)hd2nej8ie)tuc%og7f(=i(8!x5^+2lt5ww!d63wjfk!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+print(ALLOWED_HOSTS)
 
 # Application definition
 
@@ -138,18 +150,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # CUSTOM USER MODEL
 AUTH_USER_MODEL = "accounts.User"
-
-# Environment Veiables
-env = environ.Env()
-
-environ.Env.read_env(
-    os.path.join(BASE_DIR, '.env')
-)
-
-ADMIN_MAILS = env('ADMIN_MAILS')
-CARTO_API_KEY = env('CARTO_API_KEY')
-RAZORPAY_KEY_ID=env('RAZORPAY_KEY_ID')
-RAZORPAY_KEY_SECRET=env('RAZORPAY_KEY_SECRET')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

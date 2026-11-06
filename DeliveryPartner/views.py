@@ -230,6 +230,7 @@ def update_delivery_location(request):
         'longitude': longitude,
         'updated_at': timezone.now().isoformat()
     }
+    print(location)
 
     # Update all active deliveries assigned to this partner
     updated = Order.objects.filter(
