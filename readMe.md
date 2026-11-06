@@ -24,5 +24,6 @@
 - Current Flawas
   - Email authentication and forgot password
   - Multiple phone numbers or to assign different phone numbers
+  - need to solve order current status problem and reassiging of delivery partner
   - 
 - Future Improvements

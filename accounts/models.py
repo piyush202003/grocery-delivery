@@ -28,27 +28,5 @@ class Address(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def save(self, *args, **kwargs):
-        if self.is_default:
-            Address.objects.filter(
-                user=self.user,
-                is_default=True
-            ).exclude(
-                id=self.id
-            ).update(is_default=False)
-
-        if self.lat is None or self.lng is None:
-
-            full_address = ( f"{self.address}, {self.city}, {self.state}, {self.zip}, India")
-
-            lat, lng = geocode_address(full_address)
-
-            if lat is not None and lng is not None:
-                self.lat = lat
-                self.lng = lng
-
-
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return f'{self.user.username} => {self.label}'

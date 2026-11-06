@@ -15,7 +15,7 @@ urlpatterns = [
 
     path("orders/", MyOrders, name="MyOrders"),
     path("orders/<int:odid>/", OrderTracking, name = "OrderTracking"),
-    path('api/order/<str:odid>/update-location/', update_driver_location, name='update_driver_location'),
+    path('orders/<int:order_id>/live-location/', get_delivery_location, name='GetDeliveryLocation'),
 
     path("addresses/", Addresses, name = "Addresses"),
     path('addresses/<int:id>/edit', Addresses, name='AddressEdit'),

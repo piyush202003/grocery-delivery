@@ -20,6 +20,10 @@
                     Active
                 </button>
             </a>
+
+            <!-- Vertical Divider -->
+            <div class="w-px h-6 bg-gray-300 dark:bg-gray-700 shrink-0"></div>
+
             <a href="?tab=completed">
                 <button class="px-4 py-2 text-sm font-medium rounded-xl transition-colors cursor-pointer
                 {% if tab == 'completed' %}
@@ -32,9 +36,9 @@
                 </button>
             </a>
             <div class="ml-auto">
-                <a href="?tracking={% if tracking %}0{% else %}1{% endif %}">
+                <a href="?tracking=true">
                     <button class="px-4 py-2 text-sm font-semibold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer
-                        {% if tracking %}
+                        {% if user.delivery_partner.share_location %}
                             bg-green-900 text-white animate-bounce
                         {% else %}
                             bg-white text-zinc-600 border border-zinc-400 hover:bg-amber-100
@@ -42,7 +46,7 @@
                         
                     ">
                         <i data-lucide="navigation" class="w-3.5 h-3.5"></i>
-                        {% if tracking %}
+                        {% if user.delivery_partner.share_location %}
                             'Sharing Location'
                         {% else %}
                             'Share Location'
@@ -82,7 +86,90 @@
         {% if cancelModal %}
             {% include 'components/Delivery/CancelModal.html' %}
         {% endif %}
-            
+        
     </div>
+    {% comment %} Live location updating {% endcomment %}
+    <form id="csrf-form" class="hidden">
+        {% csrf_token %}
+    </form>
+    <script>
+        let watchId = null;
+        let lastSent = 0;
+
+        const shareLocation = {{ request.user.delivery_partner.share_location|yesno:"true,false" }};
+
+        const updateLocationUrl = "{% url 'update_delivery_location' %}";
+
+        const csrfToken = document.querySelector(
+            '[name=csrfmiddlewaretoken]'
+        ).value;
+
+
+        function sendLocation(position) {
+
+            const now = Date.now();
+
+            // Send location at most once every 5 seconds
+            if (now - lastSent < 5000) return;
+
+            lastSent = now;
+
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+
+            fetch(updateLocationUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    latitude: latitude,
+                    longitude: longitude
+                })
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error(error));
+        }
+
+
+        function startLocationSharing() {
+
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser');
+                return;
+            }
+
+            if (watchId !== null) return;
+
+            watchId = navigator.geolocation.watchPosition(
+                sendLocation,
+                error => {
+                    console.error('Location error:', error.message);
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 3000,
+                    timeout: 15000
+                }
+            );
+        }
+
+
+        function stopLocationSharing() {
+
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+        }
+
+
+        // Automatically start if sharing is enabled
+        if (shareLocation) {
+            startLocationSharing();
+        }
+    </script>
 {% endblock content %}
     

@@ -56,11 +56,17 @@
                                     <span class="text-white font-semibold text-sm">{{ order.delivery_partner.user.first_name|first|upper }}</span>
                                 </div>
                                 <div>
-                                    <p class="text-sm fonnt-semibold text-green-900">{{ order.delivery_partner.user|upper }}</p>
-                                    <p class="text-xs text-zinc-400 capitalize">{{ order.delivery_partner.vehicle_type }} Delivery Partner</p>
+                                    <p class="text-sm fonnt-semibold text-green-900">{{ order.delivery_partner.user.get_full_name|upper }}</p>
+                                    <p class="text-xs text-zinc-400 capitalize flex items-center justify-center gap-2">
+                                        <i 
+                                            data-lucide="{% if order.delivery_partner.vehicle_type == 'car' %}car{% else %}bike{% endif %}"
+                                            class="size-3.5">
+                                        </i>
+                                        {{ order.delivery_partner.vehicle_type }} Delivery Partner
+                                    </p>
                                 </div>
                             </div>
-                            <a href="tel:{{ order.delivery_partner.user.phone }}" class="p-2.5 bg-amber-50 rounded-xl hover:bg-amber-200 transition-colors">
+                            <a href="tel:+91{{ order.delivery_partner.user.phone }}" class="p-2.5 bg-amber-50 rounded-xl hover:bg-amber-200 transition-colors">
                                 <i data-lucide="phone" class="size-4 text-zinc-400"></i>
                             </a>
                         </div>

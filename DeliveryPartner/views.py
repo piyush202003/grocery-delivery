@@ -1,11 +1,15 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.contrib.auth import logout, login, hashers, authenticate
+import json
 
-from FeaturesApp.dummyData import dummyDashboardOrdersData, statusColors
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth import logout, login, authenticate
+from django.http import JsonResponse
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+
+
+from FeaturesApp.dummyData import statusColors
 from FeaturesApp.models import DeliveryPartner, Order, OrderStatus
-from accounts.models import User
-from .dummyData import dummy_delivery_partner_data
 from .decorators import delivey_partner_required
 
 # Create your views here.
@@ -58,11 +62,15 @@ def DeliveryDashboard(request):
     # Tracking share location
     tracking = request.GET.get("tracking", 0)
     if tracking:
-        tracking = tracking == "1"
-        request.session["deliveryPartnerTracking"] = tracking
-    else:
-        tracking = request.session.get("deliveryPartnerTracking", False)
-
+        try:
+            partner = DeliveryPartner.objects.get(user=request.user)
+            partner.share_location = not partner.share_location
+            partner.save()
+            messages.success(request, 'Succuesfully changed status of share location.')
+        except Exception as e:
+            messages.error(request, 'Error occure while changing share location status!')
+        return redirect('DeliveryDashboard')
+        
     orderStatusColors = statusColors()
 
     # otp verification form otpModal=order_id
@@ -92,7 +100,6 @@ def DeliveryDashboard(request):
 
     context={
         'tab' : tab,
-        'tracking': tracking,
         'orders':orders,
         'statusColors':orderStatusColors,
         'otpModal':otpModal,
@@ -105,7 +112,11 @@ def UpdateDeliveryStatus(request, order_id):
     if request.method != "POST":
         return redirect('DeliveryDashboard')
 
-    order = get_object_or_404(Order, id=order_id, delivery_partner__user=request.user)
+    try:
+        order = Order.objects.get(id=order_id, delivery_partner__user=request.user)
+    except Exception as e:
+        messages.error(request, 'Order did not found.')
+        return redirect('DeliveryDashboard')
 
     new_status = request.POST.get('status')
 
@@ -137,7 +148,11 @@ def VerifyOtp(request):
         otp = request.POST.get('otp')
         order_id = request.POST.get('order_id',0)
 
-        order = get_object_or_404(Order, id=int(order_id))
+        try:
+            order = Order.objects.get(id=order_id, delivery_partner__user=request.user)
+        except Exception as e:
+            messages.error(request, 'Order did not found.')
+            return redirect('DeliveryDashboard')
 
         if order.status=='Delivered' or order.status=='Cancelled':
             messages.warning(request, 'Invalid Request')
@@ -160,7 +175,11 @@ def CancelModel(request):
         reason = request.POST.get('cancel_reason')
         order_id = request.POST.get('order_id',0)
 
-        order = get_object_or_404(Order, id=int(order_id))
+        try:
+            order = Order.objects.get(id=order_id, delivery_partner__user=request.user)
+        except Exception as e:
+            messages.error(request, 'Order did not found.')
+            return redirect('DeliveryDashboard')
 
         if(order.status=='Delivered'):
             messages.warning(request, 'Cannot Cancel the Delivered Order')
@@ -173,3 +192,53 @@ def CancelModel(request):
         messages.success(request, f'Order with Order Id #{order_id} has been Cancelled.')
 
     return redirect('DeliveryDashboard')
+
+@delivey_partner_required
+@require_POST
+def update_delivery_location(request):
+
+    try:
+        partner = DeliveryPartner.objects.get(user=request.user)
+    except Exception as e:
+        messages.error(request, 'Did not found Delivery Partner')
+        return redirect('DeliveryDashboard')
+
+    # Check whether location sharing is enabled
+    if not partner.share_location:
+        return JsonResponse({
+            'success': False,
+            'message': 'Location sharing is disabled'
+        }, status=403)
+
+    try:
+        data = json.loads(request.body)
+
+        latitude = float(data.get('latitude'))
+        longitude = float(data.get('longitude'))
+
+        if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+            raise ValueError('Invalid coordinates')
+
+    except (ValueError, TypeError, json.JSONDecodeError):
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid location data'
+        }, status=400)
+
+    location = {
+        'latitude': latitude,
+        'longitude': longitude,
+        'updated_at': timezone.now().isoformat()
+    }
+
+    # Update all active deliveries assigned to this partner
+    updated = Order.objects.filter(
+        delivery_partner=partner,
+        status='Out for Delivery'
+    ).update(live_location=location)
+    
+
+    return JsonResponse({
+        'success': True,
+        'updated_orders': updated
+    })

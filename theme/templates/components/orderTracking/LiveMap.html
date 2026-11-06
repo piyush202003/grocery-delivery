@@ -1,93 +1,130 @@
-{% load static %}
+<div class="bg-white rounded-2xl p-4 shadow-sm">
+    <h2 class="text-lg font-semibold text-green-900 mb-3">
+        Track Your Delivery
+    </h2>
 
-{% if order.status != "Delivered" and order.status != "Cancelled" %}
-  <div class="rounded-2xl overflow-hidden border border-app-border" style="height: 280px;">
-    
-    {% if liveLocation and liveLocation.lat != 0 or order.shippingAddress.lat %}
-      <div id="live-map" style="height: 100%; width: 100%;"></div>
+    <div id="delivery-map"
+         style="height: 400px; width: 100%;"
+         class="rounded-xl">
+    </div>
 
-      <script>
-        document.addEventListener("DOMContentLoaded", function () {
-          // Initialize coordinates from view context
-          let initialLat = {{ liveLocation.lat|default:order.shippingAddress.lat|default:0 }};
-          let initialLng = {{ liveLocation.lng|default:order.shippingAddress.lng|default:0 }};
-          const orderId = "{{ order.id }}";
+    <p id="driver-location-status"
+       class="text-sm text-zinc-500 mt-3">
+        Waiting for delivery partner's location...
+    </p>
+</div>
 
-          // 1. Initialize Map
-          const map = L.map('live-map', { zoomControl: false }).setView([initialLat, initialLng], 15);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+<script>
+const customerLocation = {
+    lat: Number("{{ order.shipping_address.lat }}"),
+    lng: Number("{{ order.shipping_address.lng }}")
+};
 
-          // 2. Custom Icons
-          const truckIcon = L.icon({
-            iconUrl: "{% static 'images/truck.png' %}", // Adjust path to static image
-            iconSize: [36, 36],
-            iconAnchor: [18, 36],
-            popupAnchor: [0, -36]
-          });
+const orderLocationUrl = "{% url 'GetDeliveryLocation' order.id %}";
 
-          const destinationIcon = L.icon({
-            iconUrl: "{% static 'images/destination.png' %}",
-            iconSize: [32, 32],
-            iconAnchor: [16, 32],
-            popupAnchor: [0, -32]
-          });
+// Initialize map
+const deliveryMap = L.map('delivery-map').setView(
+    [customerLocation.lat, customerLocation.lng],
+    14
+);
 
-          // 3. Markers
-          let truckMarker = null;
-          {% if liveLocation and liveLocation.lat != 0 %}
-            truckMarker = L.marker([{{ liveLocation.lat }}, {{ liveLocation.lng }}], { icon: truckIcon })
-              .addTo(map)
-              .bindPopup('Delivery Partner');
-          {% endif %}
+// CARTO map tiles
+L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key={{ carto_api_key|urlencode }}',
+    {
+        attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+            '&copy; <a href="https://carto.com/attributions">CARTO</a>',
 
-          {% if order.shipping_address.lat and order.shipping_address.lng %}
-            L.marker([{{ order.shipping_address.lat }}, {{ order.shipping_address.lng }}], { icon: destinationIcon })
-              .addTo(map)
-              .bindPopup('Delivery Address');
-          {% endif %}
+        subdomains: 'abcd',
+        maxZoom: 20,
+        minZoom: 0
+    }
+).addTo(deliveryMap);
 
-          // 4. WebSocket Listener for Live Updates
-          const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-          const socket = new WebSocket(wsProtocol + window.location.host + '/ws/tracking/' + orderId + '/');
+// Customer marker
+const customerMarker = L.marker([
+    customerLocation.lat,
+    customerLocation.lng
+]).addTo(deliveryMap);
 
-          socket.onmessage = function (e) {
-            const data = JSON.parse(e.data);
-            const newLat = data.lat;
-            const newLng = data.lng;
+customerMarker.bindPopup("Your Delivery Address");
 
-            if (newLat && newLng) {
-              if (truckMarker) {
-                // Smoothly update existing marker
-                truckMarker.setLatLng([newLat, newLng]);
-              } else {
-                // Create marker if it didn't exist initially
-                truckMarker = L.marker([newLat, newLng], { icon: truckIcon })
-                  .addTo(map)
-                  .bindPopup('Delivery Partner');
-              }
-              // Re-center map to updated location
-              map.panTo([newLat, newLng], { animate: true, duration: 1 });
-            }
-          };
+// Driver marker
+let driverMarker = null;
 
-          socket.onerror = function (e) {
-            console.error("Tracking WebSocket error:", e);
-          };
-        });
-      </script>
+async function updateDriverLocation() {
 
-    {% else %}
-      <!-- Fallback display when no location is available -->
-      <div class="h-full bg-app-green/5 flex-center flex justify-center items-center">
-        <div class="text-center">
-          <svg class="size-8 text-app-green/40 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-            <circle cx="12" cy="10" r="3"/>
-          </svg>
-          <p class="text-sm text-app-green/50 font-medium">Waiting for delivery partner location...</p>
-        </div>
-      </div>
-    {% endif %}
+    try {
 
-  </div>
-{% endif %}
+        const response = await fetch(orderLocationUrl);
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            document.getElementById(
+                'driver-location-status'
+            ).innerText = data.message || "Driver location unavailable";
+
+            return;
+        }
+
+        const latitude = Number(data.location.latitude);
+        const longitude = Number(data.location.longitude);
+
+        if (
+            !Number.isFinite(latitude) ||
+            !Number.isFinite(longitude) ||
+            latitude < -90 || latitude > 90 ||
+            longitude < -180 || longitude > 180
+        ) {
+            return;
+        }
+
+        const driverPosition = [latitude, longitude];
+
+        if (!driverMarker) {
+
+            driverMarker = L.marker(driverPosition).addTo(deliveryMap);
+
+            driverMarker.bindPopup("Delivery Partner");
+
+            // Show both markers initially
+            const bounds = L.latLngBounds([
+                [customerLocation.lat, customerLocation.lng],
+                driverPosition
+            ]);
+
+            deliveryMap.fitBounds(bounds, {
+                padding: [40, 40]
+            });
+
+        } else {
+
+            // Move existing marker
+            driverMarker.setLatLng(driverPosition);
+        }
+
+        document.getElementById(
+            'driver-location-status'
+        ).innerText =
+            "Last updated: " +
+            new Date(data.location.updated_at).toLocaleTimeString();
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById(
+            'driver-location-status'
+        ).innerText = "Unable to fetch driver location.";
+    }
+}
+
+// Update every 5 seconds
+updateDriverLocation();
+
+const locationInterval = setInterval(
+    updateDriverLocation,
+    5000
+);
+</script>

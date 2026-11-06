@@ -668,45 +668,44 @@ def OrderTracking(request, odid):
         'currentIdx':currentIdx,
         'statusHistory':statusHistory,
         'allStatusInfo':allStatusInfo,
+        'carto_api_key':settings.CARTO_API_KEY,
     }
     return render(request, "OrderTracking.html", context=context)
 
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-import json
-
 @login_required(login_url='Login')
-@csrf_exempt  # Remove @csrf_exempt if passing CSRF header/token from app
-def update_driver_location(request, odid):
-    """
-    Endpoint called by driver's mobile app or GPS tracker to push location updates.
-    """
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            lat = float(data.get("lat"))
-            lng = float(data.get("lng"))
+def get_delivery_location(request, order_id):
 
-            # 1. Broadcast the new location to WebSocket subscribers
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f"order_{odid}",
-                {
-                    "type": "location_update",
-                    "lat": lat,
-                    "lng": lng,
-                }
-            )
+    try:
+        order = Order.objects.get(id=order_id, user=request.user)
+    except Order.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Order not found'
+        }, status=404)
+    
 
-            # 2. Optionally update your DB / cache here if needed...
+    if order.status != 'Out for Delivery':
+        return JsonResponse({
+            'success': False,
+            'message': 'Order is not out for delivery yet'
+        }, status=400)
 
-            return JsonResponse({"status": "success", "lat": lat, "lng": lng})
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+    if not order.delivery_partner:
+        return JsonResponse({
+            'success': False,
+            'message': 'No delivery partner assigned'
+        }, status=404)
 
-    return JsonResponse({"status": "invalid_method"}, status=405)
+    if not order.live_location:
+        return JsonResponse({
+            'success': False,
+            'message': 'Driver location not available yet'
+        }, status=404)
+
+    return JsonResponse({
+        'success': True,
+        'location': order.live_location
+    })
 
 @login_required(login_url='Login')
 def Addresses(request, id=None):
