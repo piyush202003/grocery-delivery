@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import HttpResponseBase, JsonResponse
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
@@ -312,17 +312,14 @@ def ProductPage(request,pdid):
             ).values_list('review_id', flat=True)
         )
 
-    data = None
-    # create review
-    cre_review = request.GET.get('create_review','')
-    if cre_review:
-        data = create_review(request, product_id=pdid)
-
-    # Edit review
-    ed_review = request.GET.get('edit_review', '')
-    revId = request.GET.get('edit_review_id', 0)
-    if ed_review:
-        data = edit_review(request, review_id=int(revId))
+    # review_data = request.session.pop('review_data',None)
+    review_data = None
+    if request.GET.get('create_review',None):
+        review_data = create_review(request, product_id=pdid)
+    elif request.GET.get('edit_review', None):
+        review_data = edit_review(request, user_review.id)
+    if isinstance(review_data, HttpResponseBase):
+        return review_data
 
     context={
         'pdid': pdid,
@@ -336,7 +333,7 @@ def ProductPage(request,pdid):
         'maxRatingCount':max(breakdown),
         'user_review':user_review,
         'voted_review_ids':voted_review_ids,
-        'data':data
+        'data':review_data
     }
     return render(request, "ProductPage.html", context=context)
 

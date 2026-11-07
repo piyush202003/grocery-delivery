@@ -1,3 +1,6 @@
+from itertools import product
+from math import prod
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Count, Q
@@ -61,7 +64,11 @@ def product_reviews(request, product_id):
 
 @login_required(login_url='Login')
 def create_review(request, product_id):
-    product = get_object_or_404(Product, pk=product_id)
+    try:
+        product = Product.objects.get(pk=product_id)
+    except Product.DoesNotExist:
+        messages.error(request, 'Product did not found')
+        redirect(request.META.get("HTTP_REFERER", "Home"))
 
     existing_review = Review.objects.filter(
         product=product,
@@ -83,7 +90,7 @@ def create_review(request, product_id):
             try:
                 review.save()
                 messages.success(request, "Your review has been submitted.")
-                return redirect("reviews:product", product_id=product.pk)
+                return redirect("ProductPage", pdid=product.pk)
             except Exception:
                 # Handles a concurrent duplicate submission as well.
                 if Review.objects.filter(
@@ -99,18 +106,18 @@ def create_review(request, product_id):
     else:
         form = ReviewForm()
 
-    return render(request, "reviews/review_form.html", {
-        "form": form,
-        "product": product,
-        "page_title": "Write a review",
-    })
+    request.session['review_data'] = {'form':form}
+    
+    return redirect('ProductPage',pdid=product_id)
 
 
 @login_required(login_url='Login')
 def edit_review(request, review_id):
-    review = get_object_or_404(
-        Review, pk=review_id, user=request.user
-    )
+    try:
+        review = Review.objects.get(pk=review_id, user=request.user)
+    except Review.DoesNotExist:
+        messages.error(request, 'Review does not exist!')
+        return redirect(request.META.get("HTTP_REFERER", "Home"))
 
     if request.method == "POST":
         form = ReviewForm(request.POST, instance=review)
@@ -124,12 +131,9 @@ def edit_review(request, review_id):
     else:
         form = ReviewForm(instance=review)
 
-    return render(request, "reviews/review_form.html", {
-        "form": form,
-        "product": review.product,
-        "review": review,
-        "page_title": "Edit your review",
-    })
+    request.session['review_data']={'form':form, 'review_id':review_id}
+
+    return redirect('ProductPage', pdid=review.product.id)
 
 
 @login_required(login_url='Login')

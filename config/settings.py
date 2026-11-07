@@ -26,7 +26,10 @@ SECRET_KEY = 'django-insecure-to6m!7)hd2nej8ie)tuc%og7f(=i(8!x5^+2lt5ww!d63wjfk!
 DEBUG = True
 
 ALLOWED_HOSTS = ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
-print(ALLOWED_HOSTS)
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://breeching-monday-rambling.ngrok-free.dev',
+]
 
 # Application definition
 

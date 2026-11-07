@@ -56,14 +56,14 @@
                         <div class='min-w-full flex items-center justify-between'>
                             <p>You have reviewed this product.</p>
                             <div class='flex items-center gap-4'>
-                                <button
-                                    type="button"
+                                <a
+                                    href="{% url 'ProductPage' product.id %}?edit_review={{ user_review.id }}"
                                     id="edit-review-form"
                                     class="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-green-900 border border-green-900 rounded-xl hover:bg-green-900 hover:text-white transition-colors cursor-pointer"
                                 >
                                     <i data-lucide='pencil' class='size-4'></i>
                                     Edit your review
-                                </button>
+                                </a>
                                 <form method="POST"
                                     action="{% url 'reviews:delete' user_review.id %}"
                                     onsubmit="return confirm('Are your sure? Your want to delete your review!');">
@@ -81,13 +81,13 @@
                         </div>
                     {% else %}
                         <div class='min-w-full flex items-center justify-center'>
-                            <button
-                                type="button"
+                            <a
+                                href="{% url 'ProductPage' product.id %}?create_review=True"
                                 id="create-review-form"
                                 class="px-5 py-2.5 text-sm font-medium text-green-900 border border-green-900 rounded-xl hover:bg-green-900 hover:text-white transition-colors cursor-pointer"
                             >
                                 Write a review
-                            </button>
+                            </a>
                         </div>
                     {% endif %}
                         
@@ -182,7 +182,6 @@
                                     <i data-lucide="thumbs-up" class="size-4"></i>
                                 {% endif %}
                                 Helpful ({{ review.helpful_count }})
-                                
                             </button>
                         </form>
 
@@ -250,17 +249,21 @@
 
 </section>
 
-<section class="hidden" id="review">
+
+{% if data.form %}
+<section id="review">
     <!-- Overlay -->
-    <div id="review-cln-bg" class="fixed inset-0 bg-black/40 z-[50]"></div>
+    <a href="{% url 'ProductPage' product.id %}">
+        <div id="review-cln-bg" class="fixed inset-0 bg-black/40 z-[50]"></div>
+    </a>
 
     <!-- form container -->
     <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
         <form 
             method="POST" 
             id='review-form'
-            action="{% url 'ProductPage' product.id %}?create_review=True"
-            class="bg-white rounded-2xl p-6 w-full max-w-lg animate-fade-in pointer-events-auto">
+            class="bg-white rounded-2xl p-6 w-full max-w-lg animate-fade-in pointer-events-auto"
+        >
             {% csrf_token %}
 
             <!-- Form header -->
@@ -274,9 +277,9 @@
                     {% endif %}
                     {{ product.name }}
                 </h2>
-                <button type="button" id="cl-review-btn" class="p-2 hover:bg-amber-200 rounded-lg">
+                <a href="{% url 'ProductPage' product.id %}" id="cl-review-btn" class="p-2 hover:bg-amber-200 rounded-lg">
                     <i data-lucide="x" class="size-5"></i>
-                </button>
+                </a>
             </div>
 
             {{ data.form.non_field_errors }}
@@ -315,54 +318,6 @@
         </form>
     </div>
 </section>
-
-<script>
-    const review = document.getElementById('review');
-
-    const createReviewForm = document.getElementById('create-review-form')
-    if(createReviewForm){
-        createReviewForm.addEventListener('click',()=>{
-            sessionStorage.setItem('showReviewForm','true')
-            window.location.href = "{% url 'ProductPage' product.id %}?create_review=True"
-        })
-    }
-    const editReviewForm = document.getElementById('edit-review-form')
-    if(editReviewForm){
-        editReviewForm.addEventListener('click',()=>{
-            sessionStorage.setItem('showReviewForm','true')
-            window.location.href = "{% url 'ProductPage' product.id %}?edit_review=True&review_id={{ user_review.id }}"
-        })
-    }
+{% endif %}
     
-    const clReviewBtn = document.getElementById('cl-review-btn');
-    if(clReviewBtn){
-        clReviewBtn.addEventListener('click',()=>{
-            sessionStorage.removeItem('showReviewForm');
-            window.history.back();
-        })
-    }
 
-    const reviewClnBg = document.getElementById('review-cln-bg');
-    if (reviewClnBg) {
-        reviewClnBg.addEventListener('click', function () {
-            review.classList.add('hidden');
-            sessionStorage.removeItem('showReviewForm');
-            window.location.href = "{% url 'ProductPage' product.id %}";
-        });
-    }
-
-    if (sessionStorage.getItem("showReviewForm") === "true") {
-        
-        review.classList.remove("hidden");
-        // cartSidebarRight.classList.add('animate-slide-in-right');
-    }
-
-    const reviewForm = document.getElementById('review-form');
-
-    if (reviewForm) {
-        reviewForm.addEventListener('submit', function () {
-            sessionStorage.removeItem('showReviewForm');
-        });
-    }
-    
-</script>

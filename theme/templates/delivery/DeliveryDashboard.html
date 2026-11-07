@@ -88,6 +88,7 @@
         {% endif %}
         
     </div>
+
     {% comment %} Live location updating {% endcomment %}
     <form id="csrf-form" class="hidden">
         {% csrf_token %}
@@ -150,7 +151,7 @@
                 },
                 {
                     enableHighAccuracy: true,
-                    maximumAge: 3000,
+                    maximumAge: 0,
                     timeout: 15000
                 }
             );
